@@ -64,7 +64,7 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) =>
             <Tooltip content={copied ? "Copied" : "Copy text"}>
               <button
                 onClick={handleCopy}
-                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
                 aria-label="Copy Transcript"
               >
                 {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
@@ -74,7 +74,7 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) =>
             <Tooltip content="Export TXT">
               <button
                 onClick={handleExport}
-                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
                 aria-label="Export Transcript"
               >
                 <Download size={14} />
@@ -84,7 +84,7 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) =>
             <Tooltip content="Clear workspace">
               <button
                 onClick={onClear}
-                className="p-1.5 text-brand-muted hover:text-rose-600 hover:bg-rose-50/50 rounded-md transition-all duration-200 border border-transparent hover:border-rose-100/40 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-rose-600 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 rounded-md transition-all duration-200 border border-transparent hover:border-rose-100/40 cursor-pointer"
                 aria-label="Clear Transcript"
               >
                 <Trash2 size={14} />

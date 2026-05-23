@@ -15,8 +15,8 @@ export const Button = React.forwardRef(({
   
   const variants = {
     primary: 'bg-brand-accent text-white hover:bg-brand-accent-hover shadow-sm active:scale-[0.98]',
-    secondary: 'bg-brand-card text-brand-text border border-brand-border hover:bg-stone-50 hover:border-stone-300 shadow-2xs active:scale-[0.98]',
-    ghost: 'text-brand-muted hover:text-brand-text hover:bg-stone-100 active:bg-stone-200/60',
+    secondary: 'bg-brand-card text-brand-text border border-brand-border hover:bg-stone-50 hover:border-stone-300 dark:hover:bg-stone-900/60 dark:hover:border-stone-750 shadow-2xs active:scale-[0.98]',
+    ghost: 'text-brand-muted hover:text-brand-text hover:bg-stone-100 dark:hover:bg-stone-900/60 active:bg-stone-200/60 dark:active:bg-stone-850/50',
   };
 
   const sizes = {

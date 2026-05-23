@@ -42,7 +42,7 @@ export const RecordControl = ({
                 ? 'bg-brand-accent text-white border-brand-accent hover:bg-brand-accent-hover'
                 : status === 'paused'
                 ? 'bg-brand-accent-light text-brand-accent border-brand-accent/25 hover:bg-brand-accent/15'
-                : 'bg-stone-50 text-brand-muted border-brand-border hover:border-brand-accent/30 hover:text-brand-text'
+                : 'bg-stone-50 dark:bg-stone-900/40 text-brand-muted border-brand-border hover:border-brand-accent/30 hover:text-brand-text dark:hover:bg-stone-850/50'
             } disabled:opacity-30 disabled:cursor-not-allowed`}
             aria-label={isRecording ? "Pause recording" : "Start recording"}
           >
@@ -101,7 +101,7 @@ export const RecordControl = ({
           <Tooltip content="Reset recorder">
             <button
               onClick={onReset}
-              className="p-2 text-brand-muted hover:text-brand-text hover:bg-stone-50 rounded-lg transition-all duration-200 border border-brand-border/60 cursor-pointer"
+              className="p-2 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-lg transition-all duration-200 border border-brand-border/60 cursor-pointer"
               aria-label="Reset recording"
             >
               <RotateCcw size={14} />

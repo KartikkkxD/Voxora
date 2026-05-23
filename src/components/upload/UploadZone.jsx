@@ -127,7 +127,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
                 ? 'opacity-40 cursor-not-allowed border-brand-border'
                 : isDragActive
                   ? 'border-brand-accent bg-brand-accent-light/40 scale-[0.99] shadow-2xs'
-                  : 'border-brand-border hover:border-brand-accent/35 hover:bg-stone-50/50'
+                  : 'border-brand-border hover:border-brand-accent/35 hover:bg-stone-50/50 dark:hover:bg-stone-900/30'
             }`}
           >
             <input
@@ -167,7 +167,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
               {fileName}
             </p>
             
-            <div className="w-full max-w-[200px] bg-stone-100 rounded-full h-1 overflow-hidden relative">
+            <div className="w-full max-w-[200px] bg-stone-100 dark:bg-stone-800 rounded-full h-1 overflow-hidden relative">
               <div
                 className="bg-brand-accent h-full transition-all duration-150 rounded-full"
                 style={{ width: `${progress}%` }}
@@ -181,7 +181,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
 
         {uploadStatus === 'success' && (
           <div className="p-4 flex flex-col items-center text-center">
-            <div className="p-4 bg-emerald-50 text-emerald-600 rounded-full mb-5 border border-emerald-100">
+            <div className="p-4 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 rounded-full mb-5 border border-emerald-100 dark:border-emerald-900/30">
               <CheckCircle2 size={24} />
             </div>
             <h3 className="font-display font-medium text-sm text-brand-text mb-1">
@@ -196,7 +196,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
 
         {uploadStatus === 'error' && (
           <div className="p-4 flex flex-col items-center text-center">
-            <div className="p-4 bg-rose-50 text-rose-600 rounded-full mb-5 border border-rose-100">
+            <div className="p-4 bg-rose-50 text-rose-600 dark:bg-rose-950/25 dark:text-rose-400 rounded-full mb-5 border border-rose-100 dark:border-rose-900/40">
               <AlertCircle size={24} />
             </div>
             <h3 className="font-display font-medium text-sm text-brand-text mb-1">

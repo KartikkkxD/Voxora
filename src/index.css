@@ -6,14 +6,38 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
 
-  --color-brand-bg: #FAF9F6;
-  --color-brand-card: #FCFCFC;
-  --color-brand-text: #111111;
-  --color-brand-muted: #52525B;
-  --color-brand-border: #E4E4E7;
-  --color-brand-accent: #4F46E5;
-  --color-brand-accent-hover: #4338ca;
-  --color-brand-accent-light: rgba(79, 70, 229, 0.08);
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-card: var(--brand-card);
+  --color-brand-text: var(--brand-text);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-border: var(--brand-border);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-hover: var(--brand-accent-hover);
+  --color-brand-accent-light: var(--brand-accent-light);
+}
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  --brand-bg: #FAF9F6;
+  --brand-card: #FCFCFC;
+  --brand-text: #111111;
+  --brand-muted: #52525B;
+  --brand-border: #E4E4E7;
+  --brand-accent: #2563EB; /* Refined Cobalt Blue */
+  --brand-accent-hover: #1D4ED8;
+  --brand-accent-light: rgba(37, 99, 235, 0.06);
+}
+
+:root.dark {
+  --brand-bg: #0F0F10; /* Apple/Notion style dark bg */
+  --brand-card: #161618;
+  --brand-text: #F4F4F5;
+  --brand-muted: #A1A1AA;
+  --brand-border: #27272A;
+  --brand-accent: #3B82F6; /* Brighter Cobalt Blue for contrast */
+  --brand-accent-hover: #60A5FA;
+  --brand-accent-light: rgba(59, 130, 246, 0.1);
 }
 
 @layer base {

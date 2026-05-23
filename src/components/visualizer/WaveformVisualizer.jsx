@@ -7,14 +7,14 @@ import React from 'react';
  */
 export const WaveformVisualizer = ({ audioLevels, isRecording }) => {
   return (
-    <div className="w-full flex items-center justify-center h-16 gap-[3px] select-none py-4 px-2 bg-stone-50/30 rounded-xl border border-brand-border/20">
+    <div className="w-full flex items-center justify-center h-16 gap-[3px] select-none py-4 px-2 bg-stone-50/30 dark:bg-stone-900/15 rounded-xl border border-brand-border/20">
       {audioLevels.map((level, idx) => {
         const isActive = isRecording;
         
         // Dynamic styling for visualizer bars
         const barColor = isActive 
           ? 'bg-brand-accent' 
-          : 'bg-stone-300/80';
+          : 'bg-stone-300/80 dark:bg-stone-700/85';
           
         return (
           <div
