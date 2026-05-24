@@ -1,163 +1,112 @@
-# Voxora
+# Voxora — Real-Time Speech-to-Text Platform
 
-Minimal real-time speech-to-text experience built with React, Tailwind CSS, and Framer Motion.
-
-Voxora focuses on creating a calm, modern, and beautifully designed transcription workflow instead of a cluttered AI dashboard. The project emphasizes typography, interaction quality, responsive layouts, and subtle motion to create a premium frontend experience.
+A modern, brutalist-styled real-time AI transcription workspace built with React, Vite, and Express.
 
 ---
 
-## Overview
+## Development Progress
 
-Voxora is a frontend-first implementation of a modern speech-to-text application that simulates real-time transcription with elegant UI interactions and a clean editorial design system.
+### Day 1 — Frontend Architecture & UI System
 
-The current version focuses on:
-- minimal interface design
-- upload and recording workflows
-- animated audio visualization
-- live transcript simulation
-- scalable frontend architecture
+Built the complete frontend prototype from scratch with a modern brutalist design language:
 
----
+- **Landing Page** — massive typography hero, animated feature grid, auto-cycling transcript demo, dark CTA section, editorial footer
+- **Dashboard** — stats overview, quick action cards, waveform visualizer, AI summary placeholder, recent transcripts list
+- **Recording UI** — giant microphone button with pulse rings, live waveform animation, word-by-word typing simulation
+- **Upload Experience** — drag-and-drop zone with progress animation and file validation (MP3, WAV, M4A)
+- **Transcript Library** — searchable list with status badges and metadata
+- **Design System** — cobalt blue accent, Space Grotesk + Inter + JetBrains Mono typography, 3px brutalist borders, reusable card/button/label components
+- **Responsive** — full mobile, tablet, and desktop layouts with sidebar drawer
 
-## Current Progress
+### Day 2 — Frontend-Backend Integration & Audio Recording
 
-### Completed Today
+Connected the frontend to a real backend and implemented functional audio recording:
 
-- Project planning and architecture design
-- Frontend-first product direction
-- UI/UX refinement and design system planning
-- Responsive layout structure
-- Component architecture planning
-- Real-time transcript simulation strategy
-- Audio visualizer interaction planning
-- Folder structure organization
-- Motion and typography guidelines
-
----
-
-## Design Philosophy
-
-Voxora is intentionally minimal.
-
-The interface is inspired by:
-- editorial product design
-- modern creative developer tools
-- Apple
-- Notion
-- Raycast
-- Arc Browser
-
-The focus is on:
-- whitespace
-- typography
-- spacing rhythm
-- subtle interaction feedback
-- calm user experience
-
-Avoided intentionally:
-- excessive gradients
-- cluttered dashboards
-- glowing AI aesthetics
-- unnecessary complexity
-
----
-
-## Planned Features
-
-### Frontend
-- Drag and drop audio upload
-- Real-time transcript simulation
-- Live waveform visualizer
-- Recording interactions
-- Elegant motion design
-- Responsive layouts
-- Minimal workspace experience
-
-### Future Backend Integration
-- Real-time speech-to-text processing
-- Audio upload API
-- Transcript persistence
-- AI-generated summaries
-- Authentication
-- Export functionality
+- **MediaRecorder API** — integrated browser-native audio capture with the `useAudioRecorder` hook using `MediaRecorder` and Web Audio API
+- **Real-Time Waveform** — connected `AnalyserNode` to visualize live audio input during recording sessions
+- **Express Upload Server** — built an Express.js backend with Multer middleware to receive and store audio file uploads
+- **Audio File Storage** — recorded audio files are saved server-side in `server/uploads/` with unique filenames
+- **Recording Flow** — full start → recording → stop → upload pipeline working end-to-end in the browser
+- **Dark Theme** — added theme toggle with persistent dark mode support
 
 ---
 
 ## Tech Stack
 
-### Frontend
-- React + Vite
-- Tailwind CSS
-- Framer Motion
-- Lucide React
-
-### Planned Backend
-- Node.js
-- Express.js
-- Deepgram / Whisper API
-- Supabase
+| Layer | Stack |
+|-------|-------|
+| **Frontend** | React 19, Vite, Tailwind CSS v4, Framer Motion, Lucide React, React Router DOM |
+| **Backend** | Express.js, Multer (file uploads), CORS |
+| **Audio** | MediaRecorder API, Web Audio API (AnalyserNode) |
 
 ---
 
-## Project Structure
+## Repository Structure
 
-bash src/ │ ├── assets/ │ ├── components/ │   ├── ui/ │   ├── layout/ │   ├── transcription/ │   ├── upload/ │   └── visualizer/ │ ├── pages/ │   └── Home.jsx │ ├── hooks/ │   ├── useAudioRecorder.js │   └── useTranscription.js │ ├── services/ │ ├── utils/ │   └── formatters.js │ ├── constants/ │   └── index.js │ ├── styles/ │ ├── data/ │   └── mockTranscript.js │ ├── layouts/ │   └── MainLayout.jsx │ ├── animations/ │ ├── App.jsx └── main.jsx 
-
----
-
-## UI Direction
-
-### Color Palette
-- Warm off-white background
-- Near-black typography
-- Soft neutral surfaces
-- Refined slate-indigo accent
-
-### Typography
-- Plus Jakarta Sans
-- Inter
-
-### Layout
-- Minimal hero section
-- Single transcription workspace
-- Spacious asymmetric composition
-
----
-
-## Development Goals
-
-The first draft aims to establish:
-- strong frontend architecture
-- premium visual identity
-- scalable code organization
-- polished interaction patterns
-
-before moving into:
-- backend implementation
-- live audio processing
-- authentication
-- database integration
+```
+Voxora/
+├── client/                  # React + Vite frontend
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   ├── hooks/           # Custom hooks (audio recorder, theme, transcription)
+│   │   ├── layouts/         # Page layout wrappers
+│   │   ├── pages/           # Route pages
+│   │   ├── services/        # API service layer
+│   │   ├── data/            # Mock transcript data
+│   │   ├── animations/      # Framer Motion variants
+│   │   ├── constants/       # App constants
+│   │   ├── utils/           # Formatters and helpers
+│   │   └── index.css        # Design system (Tailwind v4 + CSS tokens)
+│   └── package.json
+│
+├── server/                  # Express.js backend
+│   ├── controllers/         # Route handlers
+│   ├── middleware/           # Error handling
+│   ├── routes/              # API routes
+│   ├── services/            # Transcription service (placeholder)
+│   ├── uploads/             # Stored audio files (gitignored)
+│   └── package.json
+│
+├── .gitignore               # Excludes node_modules, .env, uploads, audio files
+└── README.md
+```
 
 ---
 
-## Upcoming Work
+## Running Locally
 
-### Next Steps
-- Implement hero section
-- Build upload interaction
-- Create waveform visualizer
-- Add transcript simulation
-- Integrate recording UI
-- Improve responsive behavior
-- Begin backend setup
+### 1. Frontend
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Opens at `http://localhost:5173`
+
+### 2. Backend
+
+```bash
+cd server
+npm install
+cp .env.example .env
+npm start
+```
+
+Runs at `http://localhost:3001`
 
 ---
 
-## Vision
+## What's Next (Day 3+)
 
-Voxora is being designed as:
-> a focused, modern, and calming transcription tool.
-
-The goal is to make real-time speech-to-text feel effortless, elegant, and visually refined.
+- [ ] Real-time WebSocket streaming for live transcription
+- [ ] Speech-to-text API integration (Whisper / Deepgram)
+- [ ] Transcript persistence and database storage
+- [ ] Speaker diarization
+- [ ] AI-powered meeting summaries
+- [ ] Authentication and user accounts
 
 ---
+
+> **Note:** Audio files recorded during testing are excluded from version control via `.gitignore`. The `server/uploads/` directory stores recordings locally only.

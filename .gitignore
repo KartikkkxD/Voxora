@@ -1,24 +1,27 @@
-# Logs
-logs
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+dist/
+client/dist/
+
+# Local Environment Variables
+.env
+.env*.local
+client/.env
+server/.env
+
+# Audio Uploads
+server/uploads/*
+!server/uploads/.gitkeep
+
+# System/Logs
+.DS_Store
+logs/
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.vite/
+.idea/
+.vscode/
