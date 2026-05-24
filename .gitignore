@@ -13,9 +13,16 @@ client/dist/
 client/.env
 server/.env
 
-# Audio Uploads
+# Audio Uploads & Recorded Media
 server/uploads/*
 !server/uploads/.gitkeep
+*.webm
+*.mp3
+*.wav
+*.m4a
+*.ogg
+*.mp4
+*.blob
 
 # System/Logs
 .DS_Store
