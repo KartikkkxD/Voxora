@@ -1,43 +1,25 @@
-# Voxora — Real-Time Speech-to-Text Platform
+# Voxora — Speech-to-Text Workspace
 
-A modern, brutalist-styled real-time AI transcription workspace built with React, Vite, and Express.
+Voxora is a modern real-time speech-to-text web application featuring a minimal, clean, and editorial design inspired by Apple, Notion, and Raycast.
 
----
-
-## Development Progress
-
-### Day 1 — Frontend Architecture & UI System
-
-Built the complete frontend prototype from scratch with a modern brutalist design language:
-
-- **Landing Page** — massive typography hero, animated feature grid, auto-cycling transcript demo, dark CTA section, editorial footer
-- **Dashboard** — stats overview, quick action cards, waveform visualizer, AI summary placeholder, recent transcripts list
-- **Recording UI** — giant microphone button with pulse rings, live waveform animation, word-by-word typing simulation
-- **Upload Experience** — drag-and-drop zone with progress animation and file validation (MP3, WAV, M4A)
-- **Transcript Library** — searchable list with status badges and metadata
-- **Design System** — cobalt blue accent, Space Grotesk + Inter + JetBrains Mono typography, 3px brutalist borders, reusable card/button/label components
-- **Responsive** — full mobile, tablet, and desktop layouts with sidebar drawer
-
-### Day 2 — Frontend-Backend Integration & Audio Recording
-
-Connected the frontend to a real backend and implemented functional audio recording:
-
-- **MediaRecorder API** — integrated browser-native audio capture with the `useAudioRecorder` hook using `MediaRecorder` and Web Audio API
-- **Real-Time Waveform** — connected `AnalyserNode` to visualize live audio input during recording sessions
-- **Express Upload Server** — built an Express.js backend with Multer middleware to receive and store audio file uploads
-- **Audio File Storage** — recorded audio files are saved server-side in `server/uploads/` with unique filenames
-- **Recording Flow** — full start → recording → stop → upload pipeline working end-to-end in the browser
-- **Dark Theme** — added theme toggle with persistent dark mode support
+This version connects browser-based audio recording and file uploads to a local Express backend integrated with the **Deepgram Speech-to-Text API** for high-fidelity, real-world transcription.
 
 ---
 
-## Tech Stack
+## Technical Features
 
-| Layer | Stack |
-|-------|-------|
-| **Frontend** | React 19, Vite, Tailwind CSS v4, Framer Motion, Lucide React, React Router DOM |
-| **Backend** | Express.js, Multer (file uploads), CORS |
-| **Audio** | MediaRecorder API, Web Audio API (AnalyserNode) |
+### Frontend (client)
+* **Browser Audio Capturing**: Uses the native **MediaRecorder API** to record live microphone input, saving binary chunks into a WebM blob.
+* **Microphone-Reactive Waveform**: Connects to the **Web Audio API** (`AnalyserNode`) to sample mic frequencies, downsampling them into **24 animated waveform bars** with a calming bell-curve factor.
+* **Playback Preview**: Hosts an audio preview player once recording is complete.
+* **Workspace State Machine**: Transition logic governing the UI: `idle` → `recording` → `paused` → `uploading` → `transcribing` → `completed` → `error`.
+* **Progressive Typography Typing**: Receives the raw text returned by the backend, splits it into sentence structures, and types them out word-by-word with punctuation pauses to retain the polished typography animations.
+
+### Backend (server)
+* **Express.js API Boot**: Validates environment variables (`PORT` and `DEEPGRAM_API_KEY`) and fails fast at boot time if missing.
+* **Multer Audio Pipeline**: Handles incoming `multipart/form-data` uploads up to **15MB** in MP3, WAV, M4A, and WEBM formats.
+* **Deepgram SDK Integration**: Houses service layers connecting to the Deepgram Speech-to-Text API (v5 SDK) using the `nova-2` model and `smart_format` rules.
+* **Resource Garbage Collection**: Automatically deletes (`fs.unlinkSync`) temporary audio uploads from the server disk inside a `finally` block once transcription finishes.
 
 ---
 
@@ -45,68 +27,60 @@ Connected the frontend to a real backend and implemented functional audio record
 
 ```
 Voxora/
-├── client/                  # React + Vite frontend
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── hooks/           # Custom hooks (audio recorder, theme, transcription)
-│   │   ├── layouts/         # Page layout wrappers
-│   │   ├── pages/           # Route pages
-│   │   ├── services/        # API service layer
-│   │   ├── data/            # Mock transcript data
-│   │   ├── animations/      # Framer Motion variants
-│   │   ├── constants/       # App constants
-│   │   ├── utils/           # Formatters and helpers
-│   │   └── index.css        # Design system (Tailwind v4 + CSS tokens)
-│   └── package.json
-│
-├── server/                  # Express.js backend
-│   ├── controllers/         # Route handlers
-│   ├── middleware/           # Error handling
-│   ├── routes/              # API routes
-│   ├── services/            # Transcription service (placeholder)
-│   ├── uploads/             # Stored audio files (gitignored)
-│   └── package.json
-│
-├── .gitignore               # Excludes node_modules, .env, uploads, audio files
-└── README.md
+├── client/     # React + Vite frontend application
+└── server/     # Express.js backend application
 ```
 
 ---
 
-## Running Locally
+## Getting Started
 
-### 1. Frontend
+### Prerequisites
+- Node.js (v18+)
+- A Deepgram API key (Free Tier)
 
-```bash
-cd client
-npm install
-npm run dev
-```
+### 1. Backend Setup (server)
+1. Navigate to the server folder:
+   ```bash
+   cd server
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+4. Edit the `.env` file and insert your Deepgram credentials:
+   ```env
+   PORT=5001
+   DEEPGRAM_API_KEY=your_deepgram_api_key_here
+   ```
+5. Start the backend server:
+   ```bash
+   npm start
+   ```
 
-Opens at `http://localhost:5173`
-
-### 2. Backend
-
-```bash
-cd server
-npm install
-cp .env.example .env
-npm start
-```
-
-Runs at `http://localhost:3001`
-
----
-
-## What's Next (Day 3+)
-
-- [ ] Real-time WebSocket streaming for live transcription
-- [ ] Speech-to-text API integration (Whisper / Deepgram)
-- [ ] Transcript persistence and database storage
-- [ ] Speaker diarization
-- [ ] AI-powered meeting summaries
-- [ ] Authentication and user accounts
-
----
-
-> **Note:** Audio files recorded during testing are excluded from version control via `.gitignore`. The `server/uploads/` directory stores recordings locally only.
+### 2. Frontend Setup (client)
+1. Navigate to the client folder (in a new terminal):
+   ```bash
+   cd client
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+4. Verify the backend target URL:
+   ```env
+   VITE_API_URL=http://localhost:5001
+   ```
+5. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   Open `http://localhost:5173` in your browser.
