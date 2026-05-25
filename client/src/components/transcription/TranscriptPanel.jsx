@@ -109,6 +109,16 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onC
               Sending file to server for processing.
             </p>
           </div>
+        ) : appState === 'saving' ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+            <div className="w-5 h-5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mb-3.5" />
+            <p className="text-[13px] text-brand-text font-medium leading-relaxed font-sans">
+              Saving to database...
+            </p>
+            <p className="text-[11px] text-brand-muted mt-1 leading-relaxed font-sans">
+              Persisting transcript record under your profile.
+            </p>
+          </div>
         ) : appState === 'transcribing' && transcriptLines.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
             <div className="w-5 h-5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mb-3.5" />

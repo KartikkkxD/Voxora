@@ -1,13 +1,33 @@
+import { supabase } from '../lib/supabase';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 console.info(`[API Client] Initialized API Service base target: ${API_BASE_URL}`);
 
 /**
- * Dispatches audio File/Blob binary payloads to the Express backend.
- * Converts blobs into named File objects so multer filters can resolve extension formats.
+ * Retrieves the authorization headers using the active Supabase session.
+ * 
+ * @returns {Promise<Object>} Headers object containing Bearer token if session exists
+ */
+const getAuthHeaders = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      return {
+        'Authorization': `Bearer ${session.access_token}`
+      };
+    }
+  } catch (err) {
+    console.warn('[API Client] Could not read active session:', err);
+  }
+  return {};
+};
+
+/**
+ * Dispatches audio File/Blob binary payloads to the Express backend upload endpoint.
  * 
  * @param {Blob|File} audioSource Audio blob from recorder or file from upload zone
- * @param {string} defaultName Default name assigned (helps mime resolver)
+ * @param {string} defaultName Default name assigned
  * @returns {Promise<Object>} Server JSON result
  */
 export const uploadAudioFile = async (audioSource, defaultName = 'audio-source.webm') => {
@@ -21,8 +41,13 @@ export const uploadAudioFile = async (audioSource, defaultName = 'audio-source.w
 
     formData.append('audio', audioFile);
 
+    const authHeaders = await getAuthHeaders();
+
     const response = await fetch(`${API_BASE_URL}/api/upload`, {
       method: 'POST',
+      headers: {
+        ...authHeaders
+      },
       body: formData
     });
 
@@ -45,10 +70,17 @@ export const uploadAudioFile = async (audioSource, defaultName = 'audio-source.w
  * Dispatches audio File/Blob payloads to the Express backend transcription endpoint.
  * 
  * @param {Blob|File} audioSource Audio blob from recorder or file from upload zone
- * @param {string} defaultName Default name assigned (helps mime resolver)
+ * @param {string} defaultName Default name assigned
+ * @param {number} duration Duration of the recording in seconds
+ * @param {string} sourceType 'recording' | 'upload'
  * @returns {Promise<Object>} Response containing transcript string
  */
-export const transcribeAudioFile = async (audioSource, defaultName = 'audio-source.webm') => {
+export const transcribeAudioFile = async (
+  audioSource,
+  defaultName = 'audio-source.webm',
+  duration = 0,
+  sourceType = 'recording'
+) => {
   try {
     console.info(`[API Client] Starting audio transcription request. Payload Size: ${audioSource.size} bytes`);
     
@@ -58,9 +90,16 @@ export const transcribeAudioFile = async (audioSource, defaultName = 'audio-sour
       : new File([audioSource], defaultName, { type: audioSource.type || 'audio/webm' });
 
     formData.append('audio', audioFile);
+    formData.append('duration', Math.round(duration));
+    formData.append('sourceType', sourceType);
+
+    const authHeaders = await getAuthHeaders();
 
     const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
       method: 'POST',
+      headers: {
+        ...authHeaders
+      },
       body: formData
     });
 
@@ -78,3 +117,96 @@ export const transcribeAudioFile = async (audioSource, defaultName = 'audio-sour
     throw err;
   }
 };
+
+/**
+ * Fetches user-isolated transcript history from the database.
+ * 
+ * @returns {Promise<Array>} List of user transcripts
+ */
+export const fetchTranscriptsHistory = async () => {
+  try {
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/transcripts`, {
+      method: 'GET',
+      headers: {
+        ...authHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Fetching transcripts failed with status: ${response.status}`);
+    }
+
+    return data.transcripts || [];
+
+  } catch (err) {
+    console.error('[API Client] Request failed during history fetch:', err);
+    throw err;
+  }
+};
+
+/**
+ * Deletes a transcript from database and storage.
+ * 
+ * @param {string} transcriptId UUID of the transcript to delete
+ * @returns {Promise<Object>} Success status response
+ */
+export const deleteTranscriptFromServer = async (transcriptId) => {
+  try {
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/transcripts/${transcriptId}`, {
+      method: 'DELETE',
+      headers: {
+        ...authHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Deletion failed with status: ${response.status}`);
+    }
+
+    return data;
+
+  } catch (err) {
+    console.error('[API Client] Request failed during transcript delete:', err);
+    throw err;
+  }
+};
+
+/**
+ * Fetches a short-lived signed URL for audio playback of a private transcript recording.
+ * 
+ * @param {string} transcriptId UUID of the transcript
+ * @returns {Promise<string>} Signed playback URL
+ */
+export const fetchTranscriptAudio = async (transcriptId) => {
+  try {
+    const authHeaders = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/transcripts/${transcriptId}/audio`, {
+      method: 'GET',
+      headers: {
+        ...authHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Fetching audio signed URL failed: ${response.status}`);
+    }
+
+    return data.signedUrl;
+
+  } catch (err) {
+    console.error('[API Client] Failed to fetch transcript audio signed URL:', err);
+    throw err;
+  }
+};
+

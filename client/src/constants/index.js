@@ -11,9 +11,9 @@ export const SUPPORTED_FILE_TYPES = [
   'audio/ogg'
 ];
 
-export const SUPPORTED_EXTENSIONS = ['.mp3', '.wav', '.m4a'];
+export const SUPPORTED_EXTENSIONS = ['.mp3', '.wav', '.m4a', '.webm'];
 
-export const MAX_FILE_SIZE_BYTES = 52428800; // 50 MB
+export const MAX_FILE_SIZE_BYTES = 15728640; // 15 MB
 
 export const HERO_CONTENT = {
   headline: 'Speak naturally. Read instantly.',

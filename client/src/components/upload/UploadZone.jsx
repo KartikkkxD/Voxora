@@ -36,13 +36,13 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
     const extension = '.' + file.name.split('.').pop().toLowerCase();
     
     if (!SUPPORTED_EXTENSIONS.includes(extension)) {
-      setErrorMessage('Unsupported format. Use MP3, WAV, or M4A.');
+      setErrorMessage('Unsupported format. Use MP3, WAV, M4A, or WEBM.');
       setUploadStatus('error');
       return false;
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      setErrorMessage('File size exceeds the 50MB limit.');
+      setErrorMessage('File size exceeds the 15MB limit.');
       setUploadStatus('error');
       return false;
     }
@@ -134,7 +134,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".mp3,.wav,.m4a"
+              accept=".mp3,.wav,.m4a,.webm"
               onChange={handleFileChange}
               disabled={isRecordingActive}
             />
@@ -151,6 +151,7 @@ export const UploadZone = ({ onUploadStart, onUploadComplete, onReset, isRecordi
               <Badge variant="neutral">MP3</Badge>
               <Badge variant="neutral">WAV</Badge>
               <Badge variant="neutral">M4A</Badge>
+              <Badge variant="neutral">WEBM</Badge>
             </div>
           </div>
         )}

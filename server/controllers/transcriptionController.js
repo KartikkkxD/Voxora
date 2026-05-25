@@ -1,10 +1,13 @@
 import { transcribeAudio } from '../services/transcriptionService.js';
+import { createTranscriptRecord } from '../services/transcriptService.js';
+import { uploadAudioToStorage, deleteAudioFromStorage } from '../services/storageService.js';
 import fs from 'fs';
 
 /**
  * Controller to handle POST /api/transcribe requests.
  * Passes the uploaded audio file to the Deepgram service, unlinks the temporary file 
  * in a finally block, and returns the transcription payload.
+ * Optionally persists the transcript in the database and uploads the file to storage if user is authenticated.
  */
 export const handleTranscription = async (req, res, next) => {
   const filePath = req.file?.path;
@@ -27,12 +30,59 @@ export const handleTranscription = async (req, res, next) => {
     // Call transcription service
     const transcriptionResult = await transcribeAudio(filePath, req.file.mimetype);
 
+    // Phase 2 & 4: Save transcript & audio to DB/Storage if user is authenticated
+    let savedRecord = null;
+    if (req.user) {
+      let storagePath = '';
+      try {
+        console.info(`[TranscriptionController] Authenticated user [${req.user.id}]. Uploading audio to storage...`);
+        
+        // 1. Storage Upload
+        try {
+          storagePath = await uploadAudioToStorage(
+            filePath,
+            req.user.id,
+            req.file.originalname,
+            req.file.mimetype
+          );
+          console.info(`[TranscriptionController] Audio uploaded successfully: ${storagePath}`);
+        } catch (storageErr) {
+          console.error('[TranscriptionController] Non-blocking Storage upload failure, falling back to database save without audio:', storageErr);
+          storagePath = ''; // Fallback: save without audio
+        }
+
+        // 2. Database Insert
+        try {
+          savedRecord = await createTranscriptRecord({
+            userId: req.user.id,
+            filename: req.file.originalname,
+            transcript: transcriptionResult.transcript,
+            audioUrl: storagePath, // Stored as relative path (e.g. userId/file.webm)
+            duration: parseInt(req.body.duration || 0, 10),
+            sourceType: req.body.sourceType || 'recording'
+          });
+          console.info(`[TranscriptionController] Transcript successfully persisted to Supabase DB: ID ${savedRecord.id}`);
+        } catch (dbErr) {
+          console.error('[TranscriptionController] Database save failed:', dbErr);
+          
+          // 3. Orphaned File Cleanup
+          if (storagePath) {
+            console.warn(`[TranscriptionController] Cleaning up orphaned storage file: ${storagePath}`);
+            await deleteAudioFromStorage(storagePath);
+          }
+        }
+      } catch (authErr) {
+        console.error('[TranscriptionController] Persistence flow exception:', authErr);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Audio transcription completed successfully.',
       transcript: transcriptionResult.transcript,
       confidence: transcriptionResult.confidence,
-      metadata: transcriptionResult.metadata
+      metadata: transcriptionResult.metadata,
+      id: savedRecord?.id || null
     });
 
   } catch (err) {
@@ -50,3 +100,4 @@ export const handleTranscription = async (req, res, next) => {
     }
   }
 };
+

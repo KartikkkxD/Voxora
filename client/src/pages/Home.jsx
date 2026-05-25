@@ -4,8 +4,11 @@ import { UploadZone } from '../components/upload/UploadZone';
 import { RecordControl } from '../components/transcription/RecordControl';
 import { WaveformVisualizer } from '../components/visualizer/WaveformVisualizer';
 import { TranscriptPanel } from '../components/transcription/TranscriptPanel';
+import { HistoryPanel } from '../components/transcription/HistoryPanel';
+import { AuthModal } from '../components/auth/AuthModal';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { useTranscription } from '../hooks/useTranscription';
+import { useAuth } from '../context/AuthContext';
 import { HERO_CONTENT } from '../constants';
 import { Button } from '../components/ui/Button';
 import { ArrowDown } from 'lucide-react';
@@ -19,10 +22,12 @@ import { transcribeAudioFile } from '../services/api';
  * Maps pipeline: record/upload -> upload to Express -> send to Deepgram -> display output.
  */
 export const Home = () => {
-  const [appState, setAppState] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'uploading' | 'transcribing' | 'completed' | 'error'
+  const [appState, setAppState] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'uploading' | 'transcribing' | 'saving' | 'completed' | 'error'
   const [activeSource, setActiveSource] = useState('none'); // 'none' | 'recording' | 'upload'
   const [transcriptionData, setTranscriptionData] = useState([]);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   
+  const { user } = useAuth();
   const workspaceRef = useRef(null);
 
   // Initialize recording hook with real MediaRecorder and AnalyserNode
@@ -120,8 +125,11 @@ export const Home = () => {
       console.info(`[UPLOAD_RECEIVED] [${new Date().toISOString()}] Audio file staged for upload: ${fileName}`);
       setAppState('uploading');
 
+      // Get duration if source is recording, else 0
+      const audioDuration = activeSource === 'recording' ? duration : 0;
+
       // Dispatch to real Express STT upload pipeline
-      const response = await transcribeAudioFile(blobOrFile, fileName);
+      const response = await transcribeAudioFile(blobOrFile, fileName, audioDuration, activeSource);
       console.info(`[Home] Transcription text returned: "${response.transcript}"`);
 
       // Split the transcript returned by backend by sentence to retain visual pacing
@@ -140,6 +148,12 @@ export const Home = () => {
         console.warn('[Home] Deepgram returned empty transcription.');
         setAppState('completed');
         return;
+      }
+
+      // Phase 2: transition through "saving" state if user is logged in
+      if (user) {
+        setAppState('saving');
+        await new Promise((resolve) => setTimeout(resolve, 850)); // Elegant visual delay
       }
 
       // Transition to transcribing state to render sentence-by-sentence
@@ -251,13 +265,16 @@ export const Home = () => {
           animate="animate"
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch"
         >
-          {/* Left Column (35%): Upload */}
-          <div className="lg:col-span-4 h-full">
+          {/* Left Column (35%): Upload & History */}
+          <div className="lg:col-span-4 h-full flex flex-col gap-6">
             <UploadZone
               onUploadStart={handleUploadStart}
               onUploadComplete={handleUploadComplete}
               onReset={handleWorkspaceClear}
               isRecordingActive={appState === 'recording' || appState === 'paused'}
+            />
+            <HistoryPanel
+              onOpenAuth={() => setIsAuthOpen(true)}
             />
           </div>
 
@@ -311,6 +328,9 @@ export const Home = () => {
           </div>
         </motion.div>
       </section>
+
+      {/* Auth Modal Trigger Overlay */}
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </MainLayout>
   );
 };

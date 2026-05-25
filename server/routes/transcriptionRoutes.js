@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { handleTranscription } from '../controllers/transcriptionController.js';
+import { optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 const uploadDir = './uploads';
@@ -61,6 +62,7 @@ const upload = multer({
   }
 });
 
-router.post('/transcribe', upload.single('audio'), handleTranscription);
+router.post('/transcribe', optionalAuth, upload.single('audio'), handleTranscription);
 
 export default router;
+

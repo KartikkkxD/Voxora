@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/uploadRoutes.js';
 import transcriptionRoutes from './routes/transcriptionRoutes.js';
+import historyRoutes from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Load environment configurations
@@ -12,11 +13,20 @@ dotenv.config();
 console.info('[Server] Validating environment configurations...');
 const PORT = process.env.PORT || 5001;
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!DEEPGRAM_API_KEY) {
   console.error('[Server] CRITICAL STARTUP ERROR: DEEPGRAM_API_KEY is undefined in environment.');
   process.exit(1);
 }
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('[Server] WARNING: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing. Auth and persistence features will fail, but guest transcription remains active.');
+} else {
+  console.info('[Server] Supabase environment variables detected.');
+}
+
 console.info('[Server] Environmental checks passed.');
 
 const app = express();
@@ -40,6 +50,7 @@ app.use((req, res, next) => {
 // Base Route mapping
 app.use('/api', uploadRoutes);
 app.use('/api', transcriptionRoutes);
+app.use('/api', historyRoutes);
 
 // Quick service status diagnostic route
 app.get('/health', (req, res) => {
