@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import uploadRoutes from './routes/uploadRoutes.js';
+import transcriptionRoutes from './routes/transcriptionRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Load environment configurations
@@ -38,6 +39,7 @@ app.use((req, res, next) => {
 
 // Base Route mapping
 app.use('/api', uploadRoutes);
+app.use('/api', transcriptionRoutes);
 
 // Quick service status diagnostic route
 app.get('/health', (req, res) => {

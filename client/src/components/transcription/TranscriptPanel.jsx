@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Copy, Download, Trash2, Check } from 'lucide-react';
+import { Copy, Download, Trash2, Check, AlertCircle } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Tooltip } from '../ui/Tooltip';
 import { Badge } from '../ui/Badge';
@@ -11,7 +11,7 @@ import { slideUpFade } from '../../animations';
  * Shows conversation lines, speaker cards, timestamps, blinking cursor, 
  * and provides action controls for Copying, Downloading, or Clearing logs.
  */
-export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) => {
+export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onClear }) => {
   const scrollRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
@@ -54,7 +54,7 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) =>
       <div className="flex items-center justify-between border-b border-brand-border/60 pb-3 mb-4 select-none">
         <div className="flex items-center space-x-2.5">
           <h3 className="font-display font-medium text-sm text-brand-text">Live Transcript</h3>
-          {isTranscribing && (
+          {(isTranscribing || appState === 'uploading') && (
             <Badge variant="accent" className="animate-pulse">Active</Badge>
           )}
         </div>
@@ -99,7 +99,39 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, onClear }) =>
         ref={scrollRef}
         className="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar max-h-[310px] min-h-[220px]"
       >
-        {transcriptLines.length === 0 ? (
+        {appState === 'uploading' ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+            <div className="w-5 h-5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mb-3.5" />
+            <p className="text-[13px] text-brand-text font-medium leading-relaxed font-sans">
+              Uploading audio payload...
+            </p>
+            <p className="text-[11px] text-brand-muted mt-1 leading-relaxed font-sans">
+              Sending file to server for processing.
+            </p>
+          </div>
+        ) : appState === 'transcribing' && transcriptLines.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+            <div className="w-5 h-5 border-2 border-brand-accent border-t-transparent rounded-full animate-spin mb-3.5" />
+            <p className="text-[13px] text-brand-text font-medium leading-relaxed font-sans">
+              Analyzing audio frequencies...
+            </p>
+            <p className="text-[11px] text-brand-muted mt-1 leading-relaxed font-sans">
+              Transcribing audio via Deepgram Speech-to-Text.
+            </p>
+          </div>
+        ) : appState === 'error' ? (
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+            <div className="p-3 bg-rose-50 text-rose-600 rounded-full mb-3.5 border border-rose-100 dark:bg-rose-950/20 dark:text-rose-450 dark:border-rose-900/30 animate-pulse">
+              <AlertCircle size={20} />
+            </div>
+            <p className="text-[13px] text-brand-text font-medium leading-relaxed font-sans">
+              Transcription Failed
+            </p>
+            <p className="text-[11px] text-brand-muted mt-1 max-w-[220px] leading-relaxed font-sans">
+              Verify your server connection and Deepgram API Key credentials.
+            </p>
+          </div>
+        ) : transcriptLines.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
             <p className="text-[14px] text-brand-muted max-w-[280px] leading-relaxed font-sans font-light">
               No transcription active. Start recording or upload an audio file to begin.

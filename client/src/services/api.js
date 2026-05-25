@@ -40,3 +40,41 @@ export const uploadAudioFile = async (audioSource, defaultName = 'audio-source.w
     throw err;
   }
 };
+
+/**
+ * Dispatches audio File/Blob payloads to the Express backend transcription endpoint.
+ * 
+ * @param {Blob|File} audioSource Audio blob from recorder or file from upload zone
+ * @param {string} defaultName Default name assigned (helps mime resolver)
+ * @returns {Promise<Object>} Response containing transcript string
+ */
+export const transcribeAudioFile = async (audioSource, defaultName = 'audio-source.webm') => {
+  try {
+    console.info(`[API Client] Starting audio transcription request. Payload Size: ${audioSource.size} bytes`);
+    
+    const formData = new FormData();
+    const audioFile = audioSource instanceof File
+      ? audioSource
+      : new File([audioSource], defaultName, { type: audioSource.type || 'audio/webm' });
+
+    formData.append('audio', audioFile);
+
+    const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Transcription failed with status: ${response.status}`);
+    }
+
+    console.info('[API Client] Audio transcription success:', data);
+    return data;
+
+  } catch (err) {
+    console.error('[API Client] Request failed during transcription lifecycle:', err);
+    throw err;
+  }
+};

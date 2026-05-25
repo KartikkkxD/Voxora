@@ -6,22 +6,23 @@ import { WaveformVisualizer } from '../components/visualizer/WaveformVisualizer'
 import { TranscriptPanel } from '../components/transcription/TranscriptPanel';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { useTranscription } from '../hooks/useTranscription';
-import { mockRecordingTranscript, mockUploadTranscript } from '../data/mockTranscript';
 import { HERO_CONTENT } from '../constants';
 import { Button } from '../components/ui/Button';
 import { ArrowDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fadeIn, slideUpFade } from '../animations';
-import { uploadAudioFile } from '../services/api';
+import { transcribeAudioFile } from '../services/api';
 
 /**
  * Main Home Page Workspace Connector.
- * Orchestrates useAudioRecorder & useTranscription hooks using a single 
- * centralized state machine: idle -> recording -> uploading -> transcribing -> completed.
+ * Day 3 Edition: Interfaces with the real-world Deepgram audio transcription API.
+ * Maps pipeline: record/upload -> upload to Express -> send to Deepgram -> display output.
  */
 export const Home = () => {
-  const [appState, setAppState] = useState('idle'); 
+  const [appState, setAppState] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'uploading' | 'transcribing' | 'completed' | 'error'
   const [activeSource, setActiveSource] = useState('none'); // 'none' | 'recording' | 'upload'
+  const [transcriptionData, setTranscriptionData] = useState([]);
+  
   const workspaceRef = useRef(null);
 
   // Initialize recording hook with real MediaRecorder and AnalyserNode
@@ -39,10 +40,7 @@ export const Home = () => {
     resetRecording
   } = useAudioRecorder();
 
-  // Select mock data source based on user input method
-  const currentMockData = activeSource === 'upload' ? mockUploadTranscript : mockRecordingTranscript;
-
-  // Initialize transcription hook
+  // Initialize transcription display hook
   const {
     transcriptLines,
     isTranscribing,
@@ -50,7 +48,7 @@ export const Home = () => {
     pauseTranscription,
     resumeTranscription,
     resetTranscription
-  } = useTranscription(currentMockData);
+  } = useTranscription(transcriptionData);
 
   // Dynamic visualizer levels array synced to 24 bars
   const [displayLevels, setDisplayLevels] = useState(Array(24).fill(0.06));
@@ -59,8 +57,8 @@ export const Home = () => {
   useEffect(() => {
     if (appState === 'recording') {
       setDisplayLevels(audioLevels);
-    } else if (appState === 'transcribing' && activeSource === 'upload') {
-      // Simulate reading/analyzing file visuals
+    } else if (appState === 'uploading' || appState === 'transcribing') {
+      // Simulate reading/analyzing file visuals during uploads and transcription
       const interval = setInterval(() => {
         setDisplayLevels(
           Array.from({ length: 24 }, (_, i) => {
@@ -82,46 +80,74 @@ export const Home = () => {
       // Default idle breathing wave
       setDisplayLevels(audioLevels);
     }
-  }, [audioLevels, appState, activeSource]);
+  }, [audioLevels, appState]);
 
   // Handle transition to completed once transcription typing finishes
   useEffect(() => {
-    if (!isTranscribing && (appState === 'transcribing' || appState === 'recording' || appState === 'uploading')) {
-      if (transcriptLines.length > 0) {
-        console.info('[Home] Transcript rendering finished. Mode is completed.');
-        setAppState('completed');
-      }
+    if (appState === 'transcribing' && !isTranscribing && transcriptLines.length > 0) {
+      console.info('[TRANSCRIPTION_COMPLETED] Transcript successfully loaded and typed out.');
+      setAppState('completed');
     }
   }, [isTranscribing, appState, transcriptLines]);
+
+  // Start transcription display once API returns and maps text lines
+  useEffect(() => {
+    if (appState === 'transcribing' && transcriptionData.length > 0) {
+      console.info('[Home] Transcription dataset mapped. Triggering progressive typing render.');
+      startTranscription();
+    }
+  }, [transcriptionData, appState]);
 
   // Sync recorder hooks error states
   useEffect(() => {
     if (recordingStatus === 'error') {
-      console.error('[Home] Audio recorder hook reported an error.');
+      console.error('[Home] Microphone / Recorder reported an error.');
       setAppState('error');
     }
   }, [recordingStatus]);
 
-  // Watch for recordedBlob from the hook and dispatch it to the backend
+  // Watch for recordedBlob from the hook and upload it
   useEffect(() => {
     if (recordedBlob && activeSource === 'recording' && appState === 'uploading') {
-      console.info('[Home] Audio blob detected from recorder. Initiating API upload...');
+      console.info('[Home] Live audio blob captured. Dispatched to uploader.');
       uploadAudioPayload(recordedBlob, 'live-recording.webm');
     }
   }, [recordedBlob, activeSource, appState]);
 
-  // Shared function to dispatch audio payloads to backend
+  // Upload and Transcribe payload dispatcher
   const uploadAudioPayload = async (blobOrFile, fileName) => {
     try {
-      console.info(`[Home] Uploading ${fileName} to Express backend...`);
-      const response = await uploadAudioFile(blobOrFile, fileName);
-      console.info('[Home] Upload response received from backend:', response);
+      console.info(`[UPLOAD_RECEIVED] [${new Date().toISOString()}] Audio file staged for upload: ${fileName}`);
+      setAppState('uploading');
 
-      // Transition state to transcribing and kick off simulation typing
+      // Dispatch to real Express STT upload pipeline
+      const response = await transcribeAudioFile(blobOrFile, fileName);
+      console.info(`[Home] Transcription text returned: "${response.transcript}"`);
+
+      // Split the transcript returned by backend by sentence to retain visual pacing
+      const sentences = response.transcript.match(/[^.!?]+[.!?]+/g) || [response.transcript];
+      const lines = sentences
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+        .map((sentence, idx) => ({
+          id: `line-${idx}-${Date.now()}`,
+          speaker: activeSource === 'recording' ? 'You' : 'Speaker 1',
+          text: sentence,
+          delayAfter: 0.8 + Math.random() * 0.4
+        }));
+
+      if (lines.length === 0) {
+        console.warn('[Home] Deepgram returned empty transcription.');
+        setAppState('completed');
+        return;
+      }
+
+      // Transition to transcribing state to render sentence-by-sentence
       setAppState('transcribing');
-      startTranscription();
+      setTranscriptionData(lines);
+
     } catch (err) {
-      console.error('[Home] Failed to upload audio payload:', err);
+      console.error('[TRANSCRIPTION_FAILED] Error during Speech-to-Text pipeline:', err);
       setAppState('error');
     }
   };
@@ -133,7 +159,7 @@ export const Home = () => {
 
   // Recording actions orchestration
   const handleRecordStart = () => {
-    console.info('[Home] Starting live recording lifecycle...');
+    console.info('[RECORDER_STARTED] Initializing browser recording.');
     setActiveSource('recording');
     setAppState('recording');
     startRecording();
@@ -152,19 +178,19 @@ export const Home = () => {
   };
 
   const handleRecordStop = () => {
-    console.info('[Home] Stopping recording. Preparing payload...');
+    console.info('[Home] Stopping recording. Staging upload...');
     stopRecording();
-    setAppState('uploading'); // set to uploading to trigger the useEffect hook
+    setAppState('uploading');
   };
 
   const handleRecordReset = () => {
-    console.info('[Home] Clearing recording states...');
+    console.info('[Home] Resetting workspace...');
     handleWorkspaceClear();
   };
 
   // Upload actions orchestration
   const handleUploadStart = () => {
-    console.info('[Home] File upload initiated. Cleaning workspace...');
+    console.info('[Home] Uploading file. Resetting workspace...');
     handleWorkspaceClear();
     setActiveSource('upload');
     setAppState('uploading');
@@ -172,14 +198,13 @@ export const Home = () => {
 
   const handleUploadComplete = (file) => {
     console.info(`[Home] UploadZone simulation complete for: ${file.name}. Uploading to API...`);
-    // Dispatch selected file to Express server
     uploadAudioPayload(file, file.name);
   };
 
   const handleWorkspaceClear = () => {
-    console.info('[Home] Clearing workspace state.');
     resetRecording();
     resetTranscription();
+    setTranscriptionData([]);
     setActiveSource('none');
     setAppState('idle');
   };
@@ -255,7 +280,7 @@ export const Home = () => {
               {/* Responsive Waveform visualizer */}
               <WaveformVisualizer
                 audioLevels={displayLevels}
-                isRecording={appState === 'recording' || (activeSource === 'upload' && appState === 'transcribing')}
+                isRecording={appState === 'recording' || appState === 'uploading' || appState === 'transcribing'}
               />
 
               {/* Recorded Audio Preview Dock */}
@@ -279,6 +304,7 @@ export const Home = () => {
               <TranscriptPanel
                 transcriptLines={transcriptLines}
                 isTranscribing={appState === 'transcribing'}
+                appState={appState}
                 onClear={handleWorkspaceClear}
               />
             </div>
