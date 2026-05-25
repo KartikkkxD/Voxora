@@ -1,8 +1,8 @@
-import { createClient } from '@deepgram/sdk';
+import { DeepgramClient } from '@deepgram/sdk';
 import fs from 'fs';
 
 /**
- * Sends a local audio file buffer to the Deepgram API for Speech-to-Text.
+ * Sends a local audio file stream to the Deepgram API (v5 SDK) for Speech-to-Text.
  * 
  * @param {string} filePath Local system path to the audio file
  * @param {string} mimetype Mime type of the uploaded file
@@ -22,26 +22,21 @@ export const transcribeAudio = async (filePath, mimetype) => {
   }
 
   try {
-    const deepgram = createClient(apiKey);
-    const fileBuffer = fs.readFileSync(filePath);
+    // Instantiate DeepgramClient according to v5 SDK specifications
+    const deepgram = new DeepgramClient(apiKey);
+    const audioStream = fs.createReadStream(filePath);
 
-    console.info(`[TranscriptionService] Dispatching file buffer (${fileBuffer.length} bytes) to Deepgram APIs...`);
+    console.info('[TranscriptionService] Dispatching file stream to Deepgram v5 listen.v1.media endpoint...');
 
-    const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
-      fileBuffer,
+    const response = await deepgram.listen.v1.media.transcribeFile(
+      audioStream,
       {
         model: 'nova-2',
         smart_format: true,
-        mimetype: mimetype || 'audio/webm'
       }
     );
 
-    if (error) {
-      console.error('[TranscriptionService] Deepgram API returned an error:', error);
-      throw new Error(error.message || 'Deepgram API error');
-    }
-
-    const transcriptText = result?.results?.channels[0]?.alternatives[0]?.transcript;
+    const transcriptText = response?.results?.channels[0]?.alternatives[0]?.transcript;
 
     if (transcriptText === undefined || transcriptText === null) {
       console.warn('[TranscriptionService] Deepgram response did not return a valid transcript.');
@@ -52,8 +47,8 @@ export const transcribeAudio = async (filePath, mimetype) => {
     
     return {
       transcript: transcriptText,
-      confidence: result?.results?.channels[0]?.alternatives[0]?.confidence || 1.0,
-      metadata: result?.metadata || {}
+      confidence: response?.results?.channels[0]?.alternatives[0]?.confidence || 1.0,
+      metadata: response?.metadata || {}
     };
 
   } catch (err) {
