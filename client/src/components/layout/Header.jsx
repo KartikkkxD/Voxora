@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { APP_NAME } from '../../constants';
 import { Badge } from '../ui/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
-import { AuthModal } from '../auth/AuthModal';
 import { Sun, Moon } from 'lucide-react';
 
 /**
@@ -12,7 +11,6 @@ import { Sun, Moon } from 'lucide-react';
 export const Header = () => {
   const { isDark, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -47,7 +45,7 @@ export const Header = () => {
         
         <div className="flex items-center space-x-3.5">
           {/* Auth Button Controls */}
-          {user ? (
+          {user && (
             <div className="flex items-center space-x-2.5">
               <span className="text-[11px] font-sans font-medium text-brand-muted truncate max-w-[110px] hidden sm:inline">
                 {user.email}
@@ -59,13 +57,6 @@ export const Header = () => {
                 Sign Out
               </button>
             </div>
-          ) : (
-            <button
-              onClick={() => setIsAuthOpen(true)}
-              className="text-[11px] font-sans font-semibold text-brand-accent hover:text-white border border-brand-accent/25 hover:bg-brand-accent bg-brand-accent-light px-3.5 py-1.5 rounded-lg transition-all duration-200 cursor-pointer"
-            >
-              Sign In
-            </button>
           )}
 
           {/* Theme Toggle Button */}
@@ -102,9 +93,6 @@ export const Header = () => {
           </a>
         </div>
       </div>
-
-      {/* Auth Modal Overlay */}
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </header>
   );
 };

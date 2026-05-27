@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({
@@ -7,8 +8,11 @@ const AuthContext = createContext({
   loading: true,
   signUp: async () => {},
   signIn: async () => {},
+  signInWithGoogle: async () => {},
   signOut: async () => {}
 });
+
+const getWorkspaceRedirectUrl = () => `${window.location.origin}/`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -46,7 +50,10 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (email, password) => {
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        emailRedirectTo: getWorkspaceRedirectUrl()
+      }
     });
     if (error) throw error;
     return data;
@@ -61,13 +68,24 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: getWorkspaceRedirectUrl()
+      }
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

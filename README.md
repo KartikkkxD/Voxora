@@ -198,6 +198,28 @@ Created:
 
 ---
 
+# Day 5 — Path-Based Authentication Routing & Workspace Refinement
+
+Day 5 focused on shifting the user authentication experience to a dedicated root route `/auth` (supporting email/password signup/login and Google OAuth) with protected routing guards, and polishing the visual spacing, empty states, and microinteractions of the main workspace.
+
+## Path-Based Authentication Routing
+- **Routing Infrastructure**: Integrated `react-router-dom` to govern the `/auth` (public) and `/` (protected) routes.
+- **Protected Routing Guards**: Added a `ProtectedRoute` wrapper component checking active Supabase sessions. It renders a quiet, minimal breathing loading indicator before redirecting unauthenticated users to `/auth`.
+
+## Editorial Split-Screen Login & Signup
+- **Cinematic Visual Identity**: Built a split layout where the left column houses high-tracking branding typography and an ambient soundwave representation animated using Framer Motion looping sines.
+- **Tactile Form & Tab Controls**: Built a card overlay in the right column with soft surfaces, subtle borders, compact email/password input validations, and clean Sign In / Sign Up tab transitions.
+- **Native Google OAuth**: Integrated the Supabase Google provider OAuth flow using an outline-based, minimal Native Google Sign-In button that coordinates perfectly with the workspace theme.
+
+## Workspace Polish & Microinteractions
+- **Margins & Paddings**: Reduced paddings in the hero and workspace containers to make the dashboard feel more spacious, calm, and integrated.
+- **Refined Empty States**:
+  - Replaced the plain-text empty history state with a minimal card showing a quiet File icon and restrained typography.
+  - Upgraded the workspace transcription empty state with a muted soundwave SVG icon and clean, readable text.
+- **Code Consolidation**: Removed deprecated overlay modals and inline triggers from the Header navbar and Home page, centralizing all authentication controls.
+
+---
+
 # Tech Stack
 
 | Layer | Technology |

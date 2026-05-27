@@ -142,9 +142,21 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onC
             </p>
           </div>
         ) : transcriptLines.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
-            <p className="text-[14px] text-brand-muted max-w-[280px] leading-relaxed font-sans font-light">
-              No transcription active. Start recording or upload an audio file to begin.
+          <div className="h-full flex flex-col items-center justify-center text-center py-16 px-8 select-none opacity-50">
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              className="w-6 h-6 text-brand-muted/80 stroke-current mb-3.5" 
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
+              <line x1="4" y1="9" x2="4" y2="15" />
+              <line x1="9" y1="6" x2="9" y2="18" />
+              <line x1="14" y1="4" x2="14" y2="20" />
+              <line x1="19" y1="8" x2="19" y2="16" />
+            </svg>
+            <p className="text-xs text-brand-muted max-w-[220px] leading-relaxed font-sans font-light">
+              No active transcription. Record your voice or upload an audio file to begin.
             </p>
           </div>
         ) : (

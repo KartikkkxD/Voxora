@@ -133,9 +133,10 @@ export const HistoryPanel = ({ onOpenAuth, onSelectTranscript, activeTranscriptI
             <p className="text-[11px] text-brand-muted font-sans">Loading saved records...</p>
           </div>
         ) : transcripts.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center py-12 px-4">
-            <p className="text-[12px] text-brand-muted max-w-[200px] leading-relaxed font-sans font-light">
-              No saved transcripts found. Start transcribing above!
+          <div className="h-full flex flex-col items-center justify-center text-center py-14 px-6 select-none opacity-60">
+            <FileText size={16} strokeWidth={1.5} className="text-brand-muted mb-2.5" />
+            <p className="text-[11px] text-brand-muted max-w-[180px] leading-relaxed font-sans font-light">
+              Your archive is empty. Saved transcripts will appear here.
             </p>
           </div>
         ) : (

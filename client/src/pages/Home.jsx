@@ -5,7 +5,6 @@ import { RecordControl } from '../components/transcription/RecordControl';
 import { WaveformVisualizer } from '../components/visualizer/WaveformVisualizer';
 import { TranscriptPanel } from '../components/transcription/TranscriptPanel';
 import { HistoryPanel } from '../components/transcription/HistoryPanel';
-import { AuthModal } from '../components/auth/AuthModal';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { useTranscription } from '../hooks/useTranscription';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +24,6 @@ export const Home = () => {
   const [appState, setAppState] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'uploading' | 'transcribing' | 'saving' | 'completed' | 'error'
   const [activeSource, setActiveSource] = useState('none'); // 'none' | 'recording' | 'upload'
   const [transcriptionData, setTranscriptionData] = useState([]);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   
   const { user } = useAuth();
   const workspaceRef = useRef(null);
@@ -226,7 +224,7 @@ export const Home = () => {
   return (
     <MainLayout>
       {/* 1. Minimal Centered Hero */}
-      <section className="py-20 md:py-28 flex flex-col items-center text-center select-none">
+      <section className="py-12 md:py-16 flex flex-col items-center text-center select-none">
         <motion.div
           variants={fadeIn}
           initial="initial"
@@ -257,7 +255,7 @@ export const Home = () => {
       {/* 2. Unified Workspace */}
       <section
         ref={workspaceRef}
-        className="w-full pt-6 pb-20 scroll-mt-24"
+        className="w-full pt-6 pb-12 scroll-mt-24"
       >
         <motion.div
           variants={slideUpFade}
@@ -273,9 +271,7 @@ export const Home = () => {
               onReset={handleWorkspaceClear}
               isRecordingActive={appState === 'recording' || appState === 'paused'}
             />
-            <HistoryPanel
-              onOpenAuth={() => setIsAuthOpen(true)}
-            />
+            <HistoryPanel />
           </div>
 
           {/* Right Column (65%): Recorder, Waveform Visualizer, Audio Preview, Transcript */}
@@ -329,8 +325,6 @@ export const Home = () => {
         </motion.div>
       </section>
 
-      {/* Auth Modal Trigger Overlay */}
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </MainLayout>
   );
 };
