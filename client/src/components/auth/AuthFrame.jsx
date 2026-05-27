@@ -193,9 +193,11 @@ const ThemeToggle = () => {
 };
 
 const AuthVisual = ({ mode }) => {
+  const location = useLocation();
   const reduceMotion = useReducedMotion();
   const copy = pageCopy[mode];
   const isSignup = mode === 'signup';
+  const alternatePath = getAlternatePath(location.pathname, mode);
 
   return (
     <motion.aside
@@ -223,10 +225,13 @@ const AuthVisual = ({ mode }) => {
             <span className="font-display text-[15px] font-semibold tracking-[0]">Voxora</span>
           </Link>
 
-          <div className="hidden items-center gap-2 text-[12px] text-brand-muted sm:flex">
+          <Link
+            to={alternatePath}
+            className="group hidden items-center gap-1.5 text-[12px] font-medium text-brand-muted transition-colors duration-200 hover:text-brand-text dark:text-zinc-400 dark:hover:text-zinc-100 sm:flex"
+          >
             <span>{copy.switchText}</span>
-            <ArrowRight size={13} strokeWidth={1.8} />
-          </div>
+            <ArrowRight size={13} strokeWidth={1.8} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
         </div>
 
         <div className="max-w-[560px]">
