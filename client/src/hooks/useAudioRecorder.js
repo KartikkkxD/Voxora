@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
  * Connects the microphone input to an AnalyserNode, samples frequency data,
  * averages it into 24 bars, and captures physical audio Blobs.
  */
-export const useAudioRecorder = () => {
+export const useAudioRecorder = ({ onChunkAvailable, timeslice = 500 } = {}) => {
   const [status, setStatus] = useState('idle'); // 'idle' | 'recording' | 'paused' | 'completed' | 'error'
   const [duration, setDuration] = useState(0);
   const [audioLevels, setAudioLevels] = useState(Array(24).fill(0.06));
@@ -19,6 +19,12 @@ export const useAudioRecorder = () => {
   const animationFrameRef = useRef(null);
   const timerRef = useRef(null);
   const chunksRef = useRef([]);
+  const onChunkAvailableRef = useRef(onChunkAvailable);
+
+  // Sync the callback ref on every render
+  useEffect(() => {
+    onChunkAvailableRef.current = onChunkAvailable;
+  }, [onChunkAvailable]);
 
   const isRecording = status === 'recording';
 
@@ -42,22 +48,30 @@ export const useAudioRecorder = () => {
       audioContextRef.current = audioCtx;
       analyserRef.current = analyserNode;
 
-      // Initialize MediaRecorder
-      const options = { mimeType: 'audio/webm' };
-      let mediaRecorder;
-      try {
-        mediaRecorder = new MediaRecorder(stream, options);
-      } catch (e) {
-        console.warn('[AudioRecorder] webm mimetype not supported, falling back to standard audio options', e);
-        mediaRecorder = new MediaRecorder(stream);
+      // Initialize MediaRecorder with the realtime container Deepgram will decode server-side.
+      const mimeType = 'audio/webm;codecs=opus';
+      if (typeof MediaRecorder.isTypeSupported === 'function' && !MediaRecorder.isTypeSupported(mimeType)) {
+        throw new Error(`Required MediaRecorder mimeType is not supported: ${mimeType}`);
       }
 
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
       mediaRecorder.ondataavailable = (e) => {
+        console.info(
+          `[AudioRecorder] MediaRecorder dataavailable fired. state=${mediaRecorder.state}, size=${e.data?.size || 0}, type=${e.data?.type || 'unknown'}`
+        );
+
         if (e.data && e.data.size > 0) {
           chunksRef.current.push(e.data);
+          
+          if (onChunkAvailableRef.current) {
+            // Forward raw container chunk (WebM/Opus) directly to client websocket processor
+            onChunkAvailableRef.current(e.data);
+          }
+        } else {
+          console.info('[AudioRecorder] Ignored empty MediaRecorder packet.');
         }
       };
 
@@ -79,9 +93,11 @@ export const useAudioRecorder = () => {
         setRecordedUrl(null);
       }
 
-      // Start recording slices
-      mediaRecorder.start(250); 
-      console.info('[AudioRecorder] MediaRecorder started.');
+      // Start recording slices dynamically
+      mediaRecorder.start(timeslice); 
+      console.info(
+        `[AudioRecorder] MediaRecorder started with timeslice: ${timeslice}ms, mimeType=${mediaRecorder.mimeType}, state=${mediaRecorder.state}`
+      );
       setStatus('recording');
       setDuration(0);
 
@@ -90,6 +106,14 @@ export const useAudioRecorder = () => {
 
     } catch (err) {
       console.error('[AudioRecorder] Failed to start recording:', err);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
       setStatus('error');
     }
   };
@@ -172,7 +196,9 @@ export const useAudioRecorder = () => {
       }, 100);
     } else if (status !== 'recording' && status !== 'paused') {
       // Stopped or completed: flatline the visualizer
-      setAudioLevels(Array(24).fill(0.06));
+      queueMicrotask(() => {
+        setAudioLevels(Array(24).fill(0.06));
+      });
     }
 
     return () => {
@@ -215,10 +241,12 @@ export const useAudioRecorder = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         console.info('[AudioRecorder] Mic stream tracks released.');
+        streamRef.current = null;
       }
 
       if (audioContextRef.current) {
         audioContextRef.current.close();
+        audioContextRef.current = null;
       }
     }
   };
@@ -229,9 +257,11 @@ export const useAudioRecorder = () => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close();
+      audioContextRef.current = null;
     }
 
     setStatus('idle');

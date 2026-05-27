@@ -1,4 +1,3 @@
-import React from 'react';
 import { Mic, Pause, RotateCcw } from 'lucide-react';
 import { formatTime } from '../../utils/formatters';
 import { Button } from '../ui/Button';
@@ -44,7 +43,7 @@ export const RecordControl = ({
                 ? 'bg-brand-accent-light text-brand-accent border-brand-accent/25 hover:bg-brand-accent/15'
                 : 'bg-stone-50 dark:bg-stone-900/40 text-brand-muted border-brand-border hover:border-brand-accent/30 hover:text-brand-text dark:hover:bg-stone-850/50'
             } disabled:opacity-30 disabled:cursor-not-allowed`}
-            aria-label={isRecording ? "Pause recording" : "Start recording"}
+            aria-label={isRecording ? "Pause stream" : "Start realtime transcription"}
           >
             {isRecording ? <Pause size={16} strokeWidth={2.5} /> : <Mic size={16} strokeWidth={2.5} />}
           </button>
@@ -54,12 +53,12 @@ export const RecordControl = ({
         <div className="flex flex-col">
           <span className="text-[10px] font-sans font-bold tracking-wider text-brand-muted uppercase">
             {isRecording 
-              ? 'Recording Live' 
+              ? 'Streaming Live' 
               : status === 'paused' 
-                ? 'Recording Paused' 
+                ? 'Stream Paused' 
                 : status === 'completed' 
-                  ? 'Recording Complete' 
-                  : 'Live Microphone'}
+                  ? 'Session Complete' 
+                  : 'Test Realtime Transcription'}
           </span>
           <span className="text-lg font-mono font-medium tracking-tight text-brand-text leading-none mt-1">
             {formatTime(duration)}
@@ -71,7 +70,7 @@ export const RecordControl = ({
       <div className="flex items-center space-x-2">
         {status === 'idle' && (
           <Button variant="secondary" size="sm" onClick={onStart} className="text-xs">
-            Record
+            Start Test
           </Button>
         )}
         
@@ -98,11 +97,11 @@ export const RecordControl = ({
         )}
 
         {status === 'completed' && (
-          <Tooltip content="Reset recorder">
+          <Tooltip content="Reset workspace">
             <button
               onClick={onReset}
               className="p-2 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-lg transition-all duration-200 border border-brand-border/60 cursor-pointer"
-              aria-label="Reset recording"
+              aria-label="Reset workspace"
             >
               <RotateCcw size={14} />
             </button>

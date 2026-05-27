@@ -210,3 +210,49 @@ export const fetchTranscriptAudio = async (transcriptId) => {
   }
 };
 
+/**
+ * Sends a single audio slice (chunk) in-memory to the Express chunk transcription endpoint.
+ * 
+ * @param {Blob|File} chunkSource Audio chunk blob
+ * @param {number} chunkIndex Sequential order index of the chunk
+ * @param {string} defaultName Default name assigned
+ * @returns {Promise<Object>} Response containing transcript string and chunkIndex
+ */
+export const transcribeAudioChunk = async (
+  chunkSource,
+  chunkIndex = 0,
+  defaultName = 'chunk.webm'
+) => {
+  try {
+    const formData = new FormData();
+    const audioFile = chunkSource instanceof File
+      ? chunkSource
+      : new File([chunkSource], defaultName, { type: chunkSource.type || 'audio/webm' });
+
+    formData.append('audio', audioFile);
+    formData.append('chunkIndex', chunkIndex);
+
+    const authHeaders = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/transcribe/chunk`, {
+      method: 'POST',
+      headers: {
+        ...authHeaders
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || `Chunk transcription failed with status: ${response.status}`);
+    }
+
+    return data;
+
+  } catch (err) {
+    console.error(`[API Client] Failed to transcribe chunk [index=${chunkIndex}]:`, err);
+    throw err;
+  }
+};
+

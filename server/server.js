@@ -5,6 +5,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import transcriptionRoutes from './routes/transcriptionRoutes.js';
 import historyRoutes from './routes/historyRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initRealtimeProxy } from './services/realtimeService.js';
 
 // Load environment configurations
 dotenv.config();
@@ -64,6 +65,8 @@ app.get('/health', (req, res) => {
 // Centralized global error mapping boundary
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.info(`[Server] Voxora API Server listening on port ${PORT}`);
 });
+
+initRealtimeProxy(server);

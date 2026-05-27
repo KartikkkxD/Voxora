@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { handleTranscription } from '../controllers/transcriptionController.js';
+import { handleTranscription, handleChunkTranscription } from '../controllers/transcriptionController.js';
 import { optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -62,7 +62,16 @@ const upload = multer({
   }
 });
 
+// In-memory multer storage for lightweight chunk transcription (bypasses disk writes)
+const memoryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit for chunks (usually ~50KB per chunk)
+  }
+});
+
 router.post('/transcribe', optionalAuth, upload.single('audio'), handleTranscription);
+router.post('/transcribe/chunk', optionalAuth, memoryUpload.single('audio'), handleChunkTranscription);
 
 export default router;
 

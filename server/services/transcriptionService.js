@@ -1,5 +1,6 @@
 import { DeepgramClient } from '@deepgram/sdk';
 import fs from 'fs';
+import { Readable } from 'stream';
 
 /**
  * Sends a local audio file stream to the Deepgram API (v5 SDK) for Speech-to-Text.
@@ -53,6 +54,48 @@ export const transcribeAudio = async (filePath, mimetype) => {
 
   } catch (err) {
     console.error(`[TRANSCRIPTION_FAILED] [${new Date().toISOString()}] Error during transcription:`, err);
+    throw err;
+  }
+};
+
+/**
+ * Transcribes an in-memory audio Buffer using Deepgram (v5 Node SDK) directly.
+ * Bypasses filesystem storage entirely for rapid progressive chunking.
+ * 
+ * @param {Buffer} buffer Audio buffer payload
+ * @param {string} mimetype Mime type of the buffer
+ * @returns {Promise<Object>} Transcript result
+ */
+export const transcribeAudioBuffer = async (buffer, mimetype) => {
+  console.info(`[CHUNK_TRANSCRIPTION_STARTED] [${new Date().toISOString()}] Buffer size: ${buffer.length} bytes`);
+
+  const apiKey = process.env.DEEPGRAM_API_KEY;
+  if (!apiKey || apiKey === 'dummy_testing_key') {
+    throw new Error('Deepgram API Key is missing or unconfigured.');
+  }
+
+  try {
+    const deepgram = new DeepgramClient(apiKey);
+    // Wrap the buffer in a stream for Deepgram API compatibility
+    const audioStream = Readable.from(buffer);
+
+    const response = await deepgram.listen.v1.media.transcribeFile(
+      audioStream,
+      {
+        model: 'nova-2',
+        smart_format: true,
+      }
+    );
+
+    const transcriptText = response?.results?.channels[0]?.alternatives[0]?.transcript || '';
+
+    return {
+      transcript: transcriptText,
+      confidence: response?.results?.channels[0]?.alternatives[0]?.confidence || 1.0,
+    };
+
+  } catch (err) {
+    console.error('[TranscriptionService] Error transcribing audio buffer:', err);
     throw err;
   }
 };
