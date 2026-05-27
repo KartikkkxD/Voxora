@@ -89,17 +89,19 @@ const Field = ({
   value,
   children
 }) => (
-  <label className="group block">
-    <span className="mb-2 block text-[12px] font-medium tracking-[0] text-brand-muted">{label}</span>
+  <label className="group block transition-transform duration-200 focus-within:-translate-y-px">
+    <span className="mb-1.5 block text-[12px] font-medium tracking-[0] text-brand-muted transition-colors duration-200 group-focus-within:text-brand-text dark:text-zinc-400 dark:group-focus-within:text-zinc-200">
+      {label}
+    </span>
     <span className="relative block">
       <Icon
         size={16}
         strokeWidth={1.9}
-        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted/75 transition-colors duration-200 group-focus-within:text-brand-accent"
+        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-muted/70 transition-colors duration-200 group-focus-within:text-brand-accent dark:text-zinc-500"
       />
       <input
         autoComplete={autoComplete}
-        className="h-12 w-full rounded-[8px] border border-brand-border/80 bg-brand-bg/72 px-10 text-[14px] text-brand-text outline-none transition-all duration-200 placeholder:text-brand-muted/48 hover:border-brand-text/18 focus:border-brand-accent/55 focus:bg-brand-card focus:ring-4 focus:ring-brand-accent/[0.08]"
+        className="h-11 w-full rounded-[8px] border border-brand-border/75 bg-white/[0.42] px-10 text-[14px] text-brand-text outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] backdrop-blur-sm transition-all duration-200 placeholder:text-brand-muted/46 hover:border-brand-text/18 hover:bg-white/[0.56] focus:border-brand-accent/55 focus:bg-brand-card/82 focus:ring-4 focus:ring-brand-accent/[0.08] dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-zinc-100 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] dark:placeholder:text-zinc-600 dark:hover:border-white/[0.14] dark:hover:bg-white/[0.06] dark:focus:bg-white/[0.075]"
         name={name}
         onChange={onChange}
         placeholder={placeholder}
@@ -109,7 +111,7 @@ const Field = ({
       />
       {children}
     </span>
-    <span className="mt-2 block min-h-4 text-[11px] leading-4 text-brand-muted/78">{hint}</span>
+    <span className="mt-1.5 block min-h-4 text-[11px] leading-4 text-brand-muted/74 dark:text-zinc-500">{hint}</span>
   </label>
 );
 
@@ -122,10 +124,10 @@ const StatusMessage = ({ status }) => (
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -4, scale: 0.985 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-        className={`flex items-start gap-2.5 rounded-[8px] border px-3.5 py-3 text-[12px] leading-5 ${
+        className={`flex items-start gap-2.5 rounded-[8px] border px-3.5 py-2.5 text-[12px] leading-5 shadow-[0_12px_32px_rgba(17,17,17,0.035)] backdrop-blur-sm ${
           status.type === 'success'
-            ? 'border-emerald-200/70 bg-emerald-50/75 text-emerald-800'
-            : 'border-rose-200/70 bg-rose-50/80 text-rose-800'
+            ? 'border-emerald-200/70 bg-emerald-50/75 text-emerald-800 dark:border-emerald-400/[0.18] dark:bg-emerald-400/[0.08] dark:text-emerald-200'
+            : 'border-rose-200/70 bg-rose-50/80 text-rose-800 dark:border-rose-400/[0.2] dark:bg-rose-400/[0.08] dark:text-rose-200'
         }`}
       >
         {status.type === 'success' ? (
@@ -224,13 +226,13 @@ export const AuthForm = ({ mode }) => {
       initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-4"
+      className="space-y-3.5"
     >
       <button
         type="button"
         onClick={handleGoogleAuth}
         disabled={isBusy}
-        className="group inline-flex h-12 w-full items-center justify-center gap-3 rounded-[8px] border border-brand-border/80 bg-brand-bg/72 px-4 text-[13px] font-medium text-brand-text transition-all duration-200 hover:-translate-y-px hover:border-brand-text/18 hover:bg-brand-card focus:outline-none focus:ring-4 focus:ring-brand-accent/[0.08] active:scale-[0.985] disabled:pointer-events-none disabled:opacity-55"
+        className="group inline-flex h-11 w-full items-center justify-center gap-3 rounded-[8px] border border-brand-border/75 bg-white/[0.42] px-4 text-[13px] font-medium text-brand-text shadow-[0_12px_34px_rgba(17,17,17,0.035),inset_0_1px_0_rgba(255,255,255,0.55)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-px hover:border-brand-text/18 hover:bg-white/[0.62] hover:shadow-[0_16px_40px_rgba(17,17,17,0.055),inset_0_1px_0_rgba(255,255,255,0.65)] focus:outline-none focus:ring-4 focus:ring-brand-accent/[0.08] active:translate-y-0 active:scale-[0.982] disabled:pointer-events-none disabled:opacity-55 dark:border-white/[0.08] dark:bg-white/[0.045] dark:text-zinc-100 dark:shadow-[0_14px_36px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.04)] dark:hover:border-white/[0.14] dark:hover:bg-white/[0.075]"
       >
         {googleLoading ? (
           <Loader2 size={16} strokeWidth={1.9} className="animate-spin text-brand-muted" />
@@ -246,7 +248,7 @@ export const AuthForm = ({ mode }) => {
         <span className="h-px flex-1 bg-brand-border/75" />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-2.5">
         <Field
           autoComplete="email"
           hint="Use the email you want connected to Voxora."
@@ -273,7 +275,7 @@ export const AuthForm = ({ mode }) => {
           <button
             type="button"
             onClick={() => setShowPassword((current) => !current)}
-            className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-[8px] text-brand-muted transition-all duration-200 hover:bg-brand-border/35 hover:text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-accent/[0.08] active:scale-[0.94]"
+            className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-[8px] text-brand-muted transition-all duration-200 hover:bg-brand-border/35 hover:text-brand-text focus:outline-none focus:ring-4 focus:ring-brand-accent/[0.08] active:scale-[0.9] dark:text-zinc-500 dark:hover:bg-white/[0.08] dark:hover:text-zinc-100"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff size={15} strokeWidth={1.8} /> : <Eye size={15} strokeWidth={1.8} />}
@@ -285,7 +287,7 @@ export const AuthForm = ({ mode }) => {
         <button
           type="submit"
           disabled={isBusy}
-          className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-[8px] bg-brand-text px-4 text-[13px] font-semibold text-brand-bg transition-all duration-200 hover:-translate-y-px hover:bg-black focus:outline-none focus:ring-4 focus:ring-brand-text/[0.12] active:scale-[0.985] disabled:pointer-events-none disabled:opacity-55"
+          className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-brand-text px-4 text-[13px] font-semibold text-brand-bg shadow-[0_16px_38px_rgba(17,17,17,0.14)] transition-all duration-200 hover:-translate-y-px hover:bg-black hover:shadow-[0_20px_46px_rgba(17,17,17,0.18)] focus:outline-none focus:ring-4 focus:ring-brand-text/[0.12] active:translate-y-0 active:scale-[0.982] disabled:pointer-events-none disabled:opacity-55 dark:bg-zinc-100 dark:text-zinc-950 dark:shadow-[0_16px_40px_rgba(0,0,0,0.32)] dark:hover:bg-white"
         >
           {submitLoading ? (
             <>
@@ -301,11 +303,11 @@ export const AuthForm = ({ mode }) => {
         </button>
       </form>
 
-      <p className="pt-2 text-center text-[12px] leading-5 text-brand-muted">
+      <p className="pt-1 text-center text-[12px] leading-5 text-brand-muted dark:text-zinc-500">
         {copy.alternateText}{' '}
         <Link
           to={switchPath}
-          className="font-medium text-brand-text underline decoration-brand-border underline-offset-4 transition-colors duration-200 hover:text-brand-accent hover:decoration-brand-accent"
+          className="font-medium text-brand-text underline decoration-brand-border underline-offset-4 transition-colors duration-200 hover:text-brand-accent hover:decoration-brand-accent dark:text-zinc-200 dark:decoration-white/[0.18] dark:hover:text-brand-accent"
         >
           {copy.alternateAction}
         </Link>
