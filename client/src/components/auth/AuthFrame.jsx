@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Moon, Sun } from 'lucide-react';
@@ -32,68 +31,24 @@ const pageCopy = {
   }
 };
 
-const scrambleGlyphs = 'aeiourstlnmvx0123456789';
-
 const getAlternatePath = (pathname, mode) => {
   const alternate = mode === 'login' ? 'signup' : 'login';
   return pathname === '/auth' ? `/auth?mode=${alternate}` : `/${alternate}`;
 };
 
-const ScrambleText = ({ text, className = '' }) => {
+const fadeUpEase = [0.16, 1, 0.3, 1];
+
+const FadeUp = ({ as: Tag = motion.div, delay = 0, children, ...rest }) => {
   const reduceMotion = useReducedMotion();
-  const [displayText, setDisplayText] = useState(text);
-
-  useEffect(() => {
-    if (reduceMotion) {
-      return undefined;
-    }
-
-    const duration = 720;
-    const startTime = performance.now();
-    let frameId;
-
-    const resolveCharacter = (character, index, progress) => {
-      if (character === ' ' || /[.,]/.test(character)) {
-        return character;
-      }
-
-      const revealPoint = index / Math.max(text.length, 1);
-      const resolved = progress > revealPoint * 0.58 + 0.28;
-
-      if (resolved || progress > 0.92) {
-        return character;
-      }
-
-      if (Math.random() > 0.34 + progress * 0.42) {
-        return character;
-      }
-
-      return scrambleGlyphs[(index + Math.floor(progress * 48) + Math.floor(Math.random() * 5)) % scrambleGlyphs.length];
-    };
-
-    const tick = (now) => {
-      const progress = Math.min((now - startTime) / duration, 1);
-      setDisplayText(
-        text
-          .split('')
-          .map((character, index) => resolveCharacter(character, index, progress))
-          .join('')
-      );
-
-      if (progress < 1) {
-        frameId = requestAnimationFrame(tick);
-      }
-    };
-
-    frameId = requestAnimationFrame(tick);
-
-    return () => cancelAnimationFrame(frameId);
-  }, [reduceMotion, text]);
-
   return (
-    <span aria-label={text} className={className}>
-      <span aria-hidden="true">{displayText}</span>
-    </span>
+    <Tag
+      initial={{ opacity: 0, y: reduceMotion ? 0 : 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.95, delay, ease: fadeUpEase }}
+      {...rest}
+    >
+      {children}
+    </Tag>
   );
 };
 
@@ -237,12 +192,22 @@ const AuthVisual = ({ mode }) => {
         <div className="max-w-[560px]">
           <TravellingWave mode={mode} />
 
-          <h1 className="max-w-[620px] font-display text-[clamp(2.25rem,4.35vw,4.05rem)] font-semibold leading-[1.02] tracking-[0] text-brand-text dark:text-zinc-50">
-            <ScrambleText key={`${mode}-visual-title`} text={copy.visualTitle} />
-          </h1>
-          <p className="mt-5 max-w-[430px] text-[14px] leading-6 text-brand-muted dark:text-zinc-400">
-            <ScrambleText key={`${mode}-visual-body`} text={copy.visualBody} />
-          </p>
+          <FadeUp
+            as={motion.h1}
+            key={`${mode}-visual-title`}
+            delay={0.18}
+            className="max-w-[620px] font-display text-[clamp(2.25rem,4.35vw,4.05rem)] font-semibold leading-[1.02] tracking-[0] text-brand-text dark:text-zinc-50"
+          >
+            {copy.visualTitle}
+          </FadeUp>
+          <FadeUp
+            as={motion.p}
+            key={`${mode}-visual-body`}
+            delay={0.38}
+            className="mt-5 max-w-[430px] text-[14px] leading-6 text-brand-muted dark:text-zinc-400"
+          >
+            {copy.visualBody}
+          </FadeUp>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-3">
@@ -298,20 +263,24 @@ export const AuthFrame = ({ mode, children }) => {
               </Link>
             </div>
 
-            <motion.div
-              key={`${mode}-copy`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
-              className="mb-5"
-            >
-              <h2 className="font-display text-[clamp(1.95rem,3.6vw,2.42rem)] font-semibold leading-[1.04] tracking-[0] text-brand-text dark:text-zinc-50">
-                <ScrambleText key={`${mode}-form-title`} text={copy.formTitle} />
-              </h2>
-              <p className="mt-3 max-w-[330px] text-[13px] leading-6 text-brand-muted dark:text-zinc-400">
-                <ScrambleText key={`${mode}-form-body`} text={copy.formBody} />
-              </p>
-            </motion.div>
+            <div className="mb-5">
+              <FadeUp
+                as={motion.h2}
+                key={`${mode}-form-title`}
+                delay={0.05}
+                className="font-display text-[clamp(1.95rem,3.6vw,2.42rem)] font-semibold leading-[1.04] tracking-[0] text-brand-text dark:text-zinc-50"
+              >
+                {copy.formTitle}
+              </FadeUp>
+              <FadeUp
+                as={motion.p}
+                key={`${mode}-form-body`}
+                delay={0.22}
+                className="mt-3 max-w-[330px] text-[13px] leading-6 text-brand-muted dark:text-zinc-400"
+              >
+                {copy.formBody}
+              </FadeUp>
+            </div>
 
             {children}
           </div>
