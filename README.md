@@ -1,5 +1,9 @@
 # Voxora — Near Real-Time Speech-to-Text Workspace
 
+> [!NOTE]
+> **This is the final version of Voxora.**
+
+
 Voxora is a modern speech-to-text web application focused on clean interaction design, browser-native audio processing, and elegant transcription workflows.
 
 Built with React, Vite, Express.js, Deepgram, and Supabase, Voxora combines a polished frontend experience with functional audio recording, upload handling, AI-powered transcription, user authentication, and database/storage persistence.

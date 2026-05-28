@@ -8,11 +8,8 @@ import { HistoryPanel } from '../components/transcription/HistoryPanel';
 import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { useTranscription } from '../hooks/useTranscription';
 import { useAuth } from '../context/AuthContext';
-import { HERO_CONTENT } from '../constants';
-import { Button } from '../components/ui/Button';
-import { ArrowDown } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { fadeIn, slideUpFade } from '../animations';
+import { fadeIn, slideUpFade, staggerContainer } from '../animations';
 import { transcribeAudioFile } from '../services/api';
 import { formatTimestamp } from '../utils/formatters';
 
@@ -32,6 +29,7 @@ export const Home = () => {
   const [interimText, setInterimText] = useState('');
   const [realtimeError, setRealtimeError] = useState('');
   const [realtimeStartedAtLabel, setRealtimeStartedAtLabel] = useState('');
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
   const { user } = useAuth();
   const workspaceRef = useRef(null);
@@ -455,6 +453,7 @@ export const Home = () => {
     status: recordingStatus,
     duration,
     audioLevels,
+    recordedBlob,
     recordedUrl,
     startRecording,
     pauseRecording,
@@ -541,6 +540,14 @@ export const Home = () => {
     }
   }, [recordingStatus]);
 
+  // Watch for recordedBlob from the hook and upload it for database persistence
+  useEffect(() => {
+    if (recordedBlob && activeSource === 'recording' && appState === 'completed') {
+      console.info('[Home] Live audio blob captured. Dispatched to uploader for database persistence.');
+      uploadAudioPayload(recordedBlob, 'live-recording.webm');
+    }
+  }, [recordedBlob, activeSource, appState]);
+
   // Upload and Transcribe payload dispatcher
   const uploadAudioPayload = async (blobOrFile, fileName) => {
     try {
@@ -582,15 +589,14 @@ export const Home = () => {
       setAppState('transcribing');
       setTranscriptionData(lines);
 
+      if (user) {
+        setHistoryRefreshTrigger((prev) => prev + 1);
+      }
+
     } catch (err) {
       console.error('[TRANSCRIPTION_FAILED] Error during Speech-to-Text pipeline:', err);
       setAppState('error');
     }
-  };
-
-  // Smooth scroll helper
-  const handleScrollToWorkspace = () => {
-    workspaceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Recording actions orchestration
@@ -706,98 +712,57 @@ export const Home = () => {
   };
 
   return (
-    <MainLayout>
-      {/* 1. Minimal Centered Hero */}
-      <section className="py-12 md:py-16 flex flex-col items-center text-center select-none">
+    <MainLayout appState={appState}>
+      <section
+        ref={workspaceRef}
+        className="w-full pt-2 pb-16 scroll-mt-20"
+      >
         <motion.div
           variants={fadeIn}
           initial="initial"
           animate="animate"
-          className="max-w-3xl flex flex-col items-center"
+          className="mb-5 md:mb-7 flex items-end justify-between gap-6 select-none"
         >
-          <span className="text-[11px] font-sans font-bold tracking-widest text-brand-muted uppercase mb-4">
-            Introducing Voxora
-          </span>
-          <h1 className="font-display font-semibold text-5xl md:text-6xl lg:text-7xl tracking-tight text-brand-text leading-[1.08] mb-6">
-            {HERO_CONTENT.headline}
-          </h1>
-          <p className="font-sans text-brand-muted text-base md:text-lg max-w-xl leading-relaxed mb-8">
-            {HERO_CONTENT.subheading}
-          </p>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={handleScrollToWorkspace}
-            className="group gap-2 hover:translate-y-px transition-transform duration-200"
-          >
-            {HERO_CONTENT.cta}
-            <ArrowDown size={15} className="group-hover:translate-y-0.5 transition-transform duration-200" />
-          </Button>
+          <div className="max-w-2xl">
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.28em] text-brand-muted mb-2">
+              Realtime Listening Workspace
+            </p>
+            <h1 className="font-display text-3xl md:text-5xl leading-[0.95] tracking-tight text-brand-text">
+              Speech flows into structure.
+            </h1>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-text/70 animate-[pulse_2.6s_infinite]" />
+            <span className="text-[11px] tracking-[0.18em] uppercase text-brand-muted">
+              {wsStatus === 'connected' ? 'Stream Synced' : wsStatus === 'connecting' ? 'Linking Stream' : wsStatus === 'error' ? 'Stream Interrupted' : 'Standby'}
+            </span>
+          </div>
         </motion.div>
-      </section>
 
-      {/* 2. Unified Workspace */}
-      <section
-        ref={workspaceRef}
-        className="w-full pt-6 pb-12 scroll-mt-24"
-      >
         <motion.div
-          variants={slideUpFade}
+          variants={staggerContainer}
           initial="initial"
           animate="animate"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-4 xl:gap-5 items-stretch"
         >
-          {/* Left Column (35%): Upload & History */}
-          <div className="lg:col-span-4 h-full flex flex-col gap-6">
+          <motion.div 
+            variants={slideUpFade} 
+            className="lg:col-span-3 h-full flex flex-col gap-4"
+          >
             <UploadZone
               onUploadStart={handleUploadStart}
               onUploadComplete={handleUploadComplete}
               onReset={handleWorkspaceClear}
               isRecordingActive={appState === 'recording' || appState === 'paused'}
             />
-            <HistoryPanel />
-          </div>
+            <HistoryPanel refreshTrigger={historyRefreshTrigger} />
+          </motion.div>
 
-          {/* Right Column (65%): Recorder, Waveform Visualizer, Audio Preview, Transcript */}
-          <div className="lg:col-span-8 flex flex-col gap-6 h-full justify-between">
-            <div className="flex flex-col gap-4">
-              {/* Voice recorder control bar */}
-              <RecordControl
-                status={appState === 'paused' ? 'paused' : appState === 'completed' ? 'completed' : recordingStatus}
-                isRecording={appState === 'recording'}
-                duration={duration}
-                onStart={handleRecordStart}
-                onPause={handleRecordPause}
-                onResume={handleRecordResume}
-                onStop={handleRecordStop}
-                onReset={handleRecordReset}
-                disabled={activeSource === 'upload' || appState === 'uploading' || appState === 'transcribing'}
-              />
-              
-              {/* Responsive Waveform visualizer */}
-              <WaveformVisualizer
-                audioLevels={displayLevels}
-                isRecording={appState === 'recording' || appState === 'uploading' || appState === 'transcribing'}
-              />
-
-              {/* Recorded Audio Preview Dock */}
-              {recordedUrl && appState === 'completed' && (
-                <motion.div
-                  variants={fadeIn}
-                  initial="initial"
-                  animate="animate"
-                  className="bg-brand-card border border-brand-border rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.01)]"
-                >
-                  <span className="text-[10px] font-sans font-bold tracking-wider text-brand-muted uppercase">
-                    Audio Preview
-                  </span>
-                  <audio src={recordedUrl} controls className="h-8 max-w-full w-[280px]" />
-                </motion.div>
-              )}
-            </div>
-
-            {/* Transcript Panel output */}
-            <div className="flex-1">
+          <motion.div 
+            variants={slideUpFade} 
+            className="lg:col-span-7 flex flex-col gap-4 h-full justify-between"
+          >
+            <div className="flex-1 min-h-[560px]">
               <TranscriptPanel
                 transcriptLines={
                   shouldRenderRealtimeTranscript
@@ -811,7 +776,69 @@ export const Home = () => {
                 onClear={handleWorkspaceClear}
               />
             </div>
-          </div>
+
+            <motion.div
+              variants={fadeIn}
+              initial="initial"
+              animate="animate"
+              className="sticky bottom-3 z-20"
+            >
+              <RecordControl
+                status={appState === 'paused' ? 'paused' : appState === 'completed' ? 'completed' : recordingStatus}
+                isRecording={appState === 'recording'}
+                duration={duration}
+                onStart={handleRecordStart}
+                onPause={handleRecordPause}
+                onResume={handleRecordResume}
+                onStop={handleRecordStop}
+                onReset={handleRecordReset}
+                disabled={activeSource === 'upload' || appState === 'uploading' || appState === 'transcribing'}
+              />
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            variants={slideUpFade}
+            className="lg:col-span-2 flex flex-col gap-4"
+          >
+            <WaveformVisualizer
+              audioLevels={displayLevels}
+              isRecording={appState === 'recording' || appState === 'uploading' || appState === 'transcribing'}
+            />
+
+            {recordedUrl && appState === 'completed' && (
+              <motion.div
+                variants={fadeIn}
+                initial="initial"
+                animate="animate"
+                className="glass-panel border border-brand-border/55 rounded-2xl p-3 flex flex-col gap-2"
+              >
+                <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-brand-muted uppercase">
+                  Playback
+                </span>
+                <audio src={recordedUrl} controls className="h-8 w-full" />
+              </motion.div>
+            )}
+
+            <motion.div
+              variants={fadeIn}
+              initial="initial"
+              animate="animate"
+              className="glass-panel rounded-2xl border border-brand-border/55 p-3.5"
+            >
+              <p className="text-[10px] uppercase tracking-[0.2em] text-brand-muted mb-2">Session Pulse</p>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[11px] text-brand-muted">
+                  <span>State</span>
+                  <span className="text-brand-text capitalize">{appState}</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-brand-muted">
+                  <span>Socket</span>
+                  <span className="text-brand-text capitalize">{wsStatus}</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         </motion.div>
       </section>
 

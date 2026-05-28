@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Clash+Display:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-display: "Clash Display", system-ui, sans-serif;
 
   --color-brand-bg: var(--brand-bg);
   --color-brand-card: var(--brand-card);
@@ -19,14 +19,14 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --brand-bg: #FAF9F6;
-  --brand-card: #FCFCFC;
-  --brand-text: #111111;
-  --brand-muted: #52525B;
-  --brand-border: #E4E4E7;
+  --brand-bg: #F5F5F4; /* Soft warm grey to separate pure white cards */
+  --brand-card: #FFFFFF; /* Pure white card backgrounds */
+  --brand-text: #09090B; /* Deepest slate black for WCAG accessibility */
+  --brand-muted: #4B5563; /* Zinc-600/700 for accessible muted text */
+  --brand-border: #D4D4D8; /* Zinc-300 for visible borders */
   --brand-accent: #2563EB; /* Refined Cobalt Blue */
   --brand-accent-hover: #1D4ED8;
-  --brand-accent-light: rgba(37, 99, 235, 0.06);
+  --brand-accent-light: rgba(37, 99, 235, 0.08);
 }
 
 :root.dark {
@@ -48,6 +48,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.22), transparent 38%),
+      radial-gradient(circle at 82% 94%, rgba(0, 0, 0, 0.06), transparent 36%);
+    background-attachment: fixed;
   }
 }
 
@@ -64,4 +69,112 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--color-brand-muted);
+}
+
+/* Ambient background noise */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Glassmorphic Panel system */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(212, 212, 216, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 1.0);
+}
+
+.dark .glass-panel {
+  background: rgba(20, 20, 22, 0.45);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(39, 39, 42, 0.5);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 
+              inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Neumorphic tactile systems */
+.neumorphic-inset {
+  background: rgba(244, 244, 245, 0.65);
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.04),
+              inset -1px -1px 3px rgba(255, 255, 255, 0.9);
+}
+
+.dark .neumorphic-inset {
+  background: rgba(18, 18, 20, 0.35);
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.3),
+              inset -2px -2px 5px rgba(255, 255, 255, 0.02);
+}
+
+.neumorphic-flat {
+  background: var(--brand-card);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.02),
+              -1px -1px 4px rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(212, 212, 216, 0.6);
+}
+
+.dark .neumorphic-flat {
+  background: var(--brand-card);
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.25),
+              -3px -3px 8px rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(39, 39, 42, 0.3);
+}
+
+.neumorphic-button {
+  background: var(--brand-card);
+  border: 1px solid rgba(212, 212, 216, 0.85);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03),
+              inset 0 1px 0 rgba(255, 255, 255, 1.0);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.neumorphic-button:hover:not(:disabled) {
+  transform: translateY(-0.5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04),
+              inset 0 1px 0 rgba(255, 255, 255, 1.0);
+  border-color: rgba(161, 161, 170, 0.8);
+}
+
+.neumorphic-button:active:not(:disabled) {
+  transform: translateY(0.5px) scale(0.995);
+  box-shadow: inset 2px 2px 4px rgba(74, 89, 125, 0.2);
+}
+
+.dark .neumorphic-button {
+  background: #18181b;
+  border: 1px solid rgba(39, 39, 42, 0.8);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.dark .neumorphic-button:hover:not(:disabled) {
+  border-color: var(--brand-accent);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.dark .neumorphic-button:active:not(:disabled) {
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* Ambient glow text */
+.glow-text {
+  text-shadow: 0 0 20px rgba(37, 99, 235, 0.1);
+}
+
+.dark .glow-text {
+  text-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+}
+
+.ambient-grid {
+  background-image:
+    linear-gradient(rgba(40, 40, 38, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(40, 40, 38, 0.04) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.dark .ambient-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
 }

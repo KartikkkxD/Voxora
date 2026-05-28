@@ -1,9 +1,9 @@
 import React from 'react';
 import { APP_NAME } from '../../constants';
-import { Badge } from '../ui/Badge';
 import { useTheme } from '../../hooks/useTheme';
 import { useAuth } from '../../context/AuthContext';
 import { Sun, Moon } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 /**
  * Minimal Header Component containing logo, theme toggle, authentication, and status indicators.
@@ -21,10 +21,13 @@ export const Header = () => {
   };
 
   return (
-    <header className="w-full py-6 px-6 md:px-12 bg-transparent select-none">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full py-4 px-4 sm:px-6 md:px-10 bg-brand-bg/35 backdrop-blur-xl border-b border-brand-border/35 select-none">
+      <div className="max-w-[1240px] mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <span className="font-display font-semibold text-lg tracking-tight flex items-center gap-2.5 text-brand-text">
+          <motion.span
+            whileHover={{ y: -1 }}
+            className="font-display font-semibold text-lg tracking-tight flex items-center gap-2.5 text-brand-text"
+          >
             {/* Minimal SVG soundwave logo icon */}
             <svg 
               viewBox="0 0 24 24" 
@@ -39,8 +42,10 @@ export const Header = () => {
               <line x1="19" y1="8" x2="19" y2="16" />
             </svg>
             {APP_NAME}
+          </motion.span>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-brand-muted/85 hidden sm:inline">
+            Live Capture OS
           </span>
-          <Badge variant="accent">v1.1.0-supabase</Badge>
         </div>
         
         <div className="flex items-center space-x-3.5">
@@ -52,7 +57,7 @@ export const Header = () => {
               </span>
               <button
                 onClick={handleSignOut}
-                className="text-[11px] font-sans font-medium text-brand-muted hover:text-brand-text border border-brand-border hover:bg-stone-50 dark:hover:bg-stone-900/60 px-2.5 py-1.5 rounded-lg transition-all duration-200 cursor-pointer"
+                className="text-[11px] font-sans font-medium text-brand-muted hover:text-brand-text border border-brand-border/70 hover:bg-white/50 dark:hover:bg-slate-900/60 px-2.5 py-1.5 rounded-xl transition-all duration-250 cursor-pointer neumorphic-button"
               >
                 Sign Out
               </button>
@@ -62,7 +67,7 @@ export const Header = () => {
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 text-brand-muted hover:text-brand-text hover:bg-stone-100 dark:hover:bg-stone-900/60 rounded-lg transition-all duration-200 border border-transparent hover:border-brand-border/40 cursor-pointer"
+            className="p-2 text-brand-muted hover:text-brand-text hover:bg-white/50 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-250 border border-brand-border/0 hover:border-brand-border/50 cursor-pointer"
             aria-label="Toggle Theme"
           >
             {isDark ? <Sun size={17} strokeWidth={2.2} /> : <Moon size={17} strokeWidth={2.2} />}
@@ -70,10 +75,10 @@ export const Header = () => {
 
           {/* GitHub Icon Link */}
           <a
-            href="https://github.com"
+            href="https://github.com/KartikkkxD/Voxora"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 text-brand-muted hover:text-brand-text hover:bg-stone-100 dark:hover:bg-stone-900/60 rounded-lg transition-all duration-200 border border-transparent hover:border-brand-border/40"
+            className="p-2 text-brand-muted hover:text-brand-text hover:bg-white/50 dark:hover:bg-slate-900/60 rounded-xl transition-all duration-250 border border-brand-border/0 hover:border-brand-border/50"
             aria-label="GitHub Repository"
           >
             <svg

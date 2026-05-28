@@ -2,16 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Copy, Download, Trash2, Check, AlertCircle } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Tooltip } from '../ui/Tooltip';
-import { Badge } from '../ui/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { slideUpFade } from '../../animations';
 
 /**
  * Real-time Speech-to-Text output interface.
  * Shows conversation lines, speaker cards, timestamps, blinking cursor, 
  * and provides action controls for Copying, Downloading, or Clearing logs.
  */
-export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onClear }) => {
+export const TranscriptPanel = ({ 
+  transcriptLines, 
+  isTranscribing, 
+  appState, 
+  wsStatus = 'disconnected', 
+  errorMessage = '', 
+  onClear 
+}) => {
   const scrollRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
@@ -48,56 +53,82 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onC
     URL.revokeObjectURL(url);
   };
 
+  const wsToneClass =
+    wsStatus === 'connected'
+      ? 'from-brand-text/75 to-brand-text/35'
+      : wsStatus === 'connecting'
+        ? 'from-brand-muted/70 to-brand-muted/30'
+        : wsStatus === 'error'
+          ? 'from-brand-muted/75 to-brand-muted/30'
+          : 'from-brand-muted/45 to-brand-muted/15';
+
   return (
     <Card className="flex flex-col h-full items-stretch min-h-[380px] p-6 relative">
+      <motion.div
+        aria-hidden="true"
+        animate={{
+          opacity: isTranscribing ? [0.06, 0.14, 0.06] : 0.04
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-4 right-10 w-36 h-36 rounded-full bg-white/15 dark:bg-white/6 blur-3xl pointer-events-none"
+      />
       {/* Quiet Toolbar Header */}
-      <div className="flex items-center justify-between border-b border-brand-border/60 pb-3 mb-4 select-none">
+      <div className="flex items-center justify-between border-b border-brand-border/60 pb-3 mb-4 select-none relative z-10">
         <div className="flex items-center space-x-2.5">
-          <h3 className="font-display font-medium text-sm text-brand-text">Live Transcript</h3>
-          {(isTranscribing || appState === 'uploading') && (
-            <Badge variant="accent" className="animate-pulse">Active</Badge>
-          )}
+          <h3 className="font-display font-semibold text-sm text-brand-text tracking-tight">Live Transcript</h3>
+          <div className="flex items-center gap-2">
+            <span className={`h-[2px] w-10 rounded-full bg-gradient-to-r ${wsToneClass}`} />
+            <span className="text-[10px] uppercase tracking-[0.16em] text-brand-muted">
+              {wsStatus}
+            </span>
+          </div>
         </div>
         
         {transcriptLines.length > 0 && (
           <div className="flex items-center space-x-1">
             <Tooltip content={copied ? "Copied" : "Copy text"}>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleCopy}
-                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-100 dark:hover:bg-stone-900/60 rounded-md transition-colors border border-transparent hover:border-brand-border cursor-pointer"
                 aria-label="Copy Transcript"
               >
-                {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-              </button>
+                {copied ? <Check size={14} className="text-emerald-600 dark:text-emerald-500" /> : <Copy size={14} />}
+              </motion.button>
             </Tooltip>
             
             <Tooltip content="Export TXT">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleExport}
-                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-50 dark:hover:bg-stone-900/60 rounded-md transition-all duration-200 border border-transparent hover:border-brand-border/50 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-brand-text hover:bg-stone-100 dark:hover:bg-stone-900/60 rounded-md transition-colors border border-transparent hover:border-brand-border cursor-pointer"
                 aria-label="Export Transcript"
               >
                 <Download size={14} />
-              </button>
+              </motion.button>
             </Tooltip>
-
+ 
             <Tooltip content="Clear workspace">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={onClear}
-                className="p-1.5 text-brand-muted hover:text-rose-600 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 rounded-md transition-all duration-200 border border-transparent hover:border-rose-100/40 cursor-pointer"
+                className="p-1.5 text-brand-muted hover:text-rose-600 hover:bg-rose-100/50 dark:hover:bg-rose-950/20 rounded-md transition-colors border border-transparent hover:border-rose-300 cursor-pointer"
                 aria-label="Clear Transcript"
               >
                 <Trash2 size={14} />
-              </button>
+              </motion.button>
             </Tooltip>
           </div>
         )}
       </div>
-
+ 
       {/* Output Stream */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar max-h-[310px] min-h-[220px]"
+        className="flex-1 overflow-y-auto pr-1 space-y-5 custom-scrollbar max-h-[310px] min-h-[220px] relative z-10"
       >
         {appState === 'uploading' ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
@@ -137,8 +168,8 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onC
             <p className="text-[13px] text-brand-text font-medium leading-relaxed font-sans">
               Transcription Failed
             </p>
-            <p className="text-[11px] text-brand-muted mt-1 max-w-[220px] leading-relaxed font-sans">
-              Verify your server connection and Deepgram API Key credentials.
+            <p className="text-[11px] text-brand-muted mt-1 max-w-[240px] leading-relaxed font-sans">
+              {errorMessage || 'Verify your server connection and Deepgram API Key credentials.'}
             </p>
           </div>
         ) : transcriptLines.length === 0 ? (
@@ -162,29 +193,46 @@ export const TranscriptPanel = ({ transcriptLines, isTranscribing, appState, onC
         ) : (
           <div className="space-y-6">
             <AnimatePresence initial={false}>
-              {transcriptLines.map((line, idx) => (
-                <motion.div
-                  key={line.id || idx}
-                  {...slideUpFade}
-                  className="flex flex-col space-y-1.5 group"
-                >
-                  <div className="flex items-center justify-between select-none">
-                    <span className="text-[10px] font-sans font-bold tracking-wider text-brand-accent uppercase">
-                      {line.speaker}
-                    </span>
-                    <span className="text-[9px] font-sans text-brand-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      {line.timestamp}
-                    </span>
-                  </div>
-                  
-                  <p className="text-[17px] leading-relaxed text-brand-text font-normal font-sans tracking-tight">
-                    {line.text}
-                    {line.isTyping && (
-                      <span className="inline-block w-[1.5px] h-[16px] bg-brand-accent ml-1.5 align-middle animate-[pulse_1s_infinite]" />
-                    )}
-                  </p>
-                </motion.div>
-              ))}
+              {transcriptLines.map((line, idx) => {
+                const isInterim = line.isFinal === false;
+                const isPlaceholder = line.isListeningPlaceholder === true;
+
+                return (
+                  <motion.div
+                    key={line.id || idx}
+                    layout
+                    initial={{ opacity: 0, y: 9, scale: 0.995, filter: 'blur(2px)' }}
+                    animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], layout: { duration: 0.3 } }}
+                    className="flex flex-col space-y-1 group p-2 rounded-xl hover:bg-white/35 dark:hover:bg-slate-900/35"
+                  >
+                    <div className="flex items-center justify-between select-none">
+                      <span className="text-[10px] font-display font-semibold tracking-wider text-brand-muted uppercase">
+                        {line.speaker}
+                      </span>
+                      <span className="text-[9px] font-sans text-brand-muted opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {line.timestamp}
+                      </span>
+                    </div>
+                    
+                    <p 
+                      className={`text-[15px] md:text-[16px] leading-relaxed tracking-tight transition-all duration-300 ${
+                        isPlaceholder
+                          ? 'text-brand-text/55 dark:text-brand-text/40 italic font-light animate-[pulse_2s_infinite]'
+                          : isInterim
+                          ? 'text-brand-text/75 dark:text-brand-text/60 italic font-medium'
+                          : 'text-brand-text dark:text-brand-text/95 font-medium font-sans'
+                      }`}
+                    >
+                      {line.text}
+                      {line.isTyping && (
+                        <span className="inline-block w-1.5 h-3.5 rounded-full bg-brand-accent ml-1.5 align-middle animate-[pulse_1.2s_infinite]" />
+                      )}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}

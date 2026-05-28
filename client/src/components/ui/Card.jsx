@@ -6,7 +6,7 @@ import React from 'react';
 export const Card = ({ children, className = '', ...props }) => {
   return (
     <div
-      className={`bg-brand-card border border-brand-border rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] p-6 transition-all duration-200 ${className}`}
+      className={`glass-panel rounded-2xl p-6 transition-all duration-300 will-change-transform ${className}`}
       {...props}
     >
       {children}
