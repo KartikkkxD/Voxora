@@ -2,7 +2,7 @@ import { supabase } from '../services/supabaseClient.js';
 
 /**
  * Middleware to enforce authentication using Supabase JWT.
- * Blocks the request if no valid token is provided.
+ 
  */
 export const requireAuth = async (req, res, next) => {
   try {
